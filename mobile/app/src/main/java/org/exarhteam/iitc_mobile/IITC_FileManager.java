@@ -1,5 +1,6 @@
 package org.exarhteam.iitc_mobile;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -7,8 +8,10 @@ import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.preference.PreferenceManager;
@@ -17,6 +20,8 @@ import android.util.Base64;
 import android.util.Base64OutputStream;
 import android.webkit.WebResourceResponse;
 import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
 
 import org.exarhteam.iitc_mobile.IITC_Mobile.ResponseHandler;
 import org.exarhteam.iitc_mobile.async.UpdateScript;
@@ -42,8 +47,12 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class IITC_FileManager {
+    private static final int PERMISSION_REQUEST_CODE = 3;
+
     private static final WebResourceResponse EMPTY =
             new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream("".getBytes()));
     private static final String WRAPPER_NEW = "wrapper(info);";
@@ -96,16 +105,13 @@ public class IITC_FileManager {
         map.put("description", "");
         map.put("category", "Misc");
         final BufferedReader reader = new BufferedReader(new StringReader(header));
-        String headerLine;
         try {
+            final Pattern p = Pattern.compile("^\\s*//\\s*@(\\S+)(.*)$");
+            String headerLine;
             while ((headerLine = reader.readLine()) != null) {
-                if (headerLine.matches("//.*@.*")) {
-                    // get start of key name (first @ in line)
-                    final String[] keyStart = headerLine.split("@", 2);
-                    // split key value
-                    final String[] keyValue = keyStart[1].split(" ", 2);
-                    // remove whitespaces from string begin and end and push to map
-                    map.put(keyValue[0].trim(), keyValue[1].trim());
+                final Matcher m = p.matcher(headerLine);
+                if (m.matches()) {
+                    map.put(m.group(1), m.group(2).trim());
                 }
             }
         } catch (final IOException e) {
@@ -150,15 +156,10 @@ public class IITC_FileManager {
             try {
                 return new FileInputStream(file);
             } catch (final FileNotFoundException e) {
-                mActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(mActivity, "File " + mIitcPath +
-                                        "dev/" + filename + " not found. " +
-                                        "Disable developer mode or add iitc files to the dev folder.",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+                mActivity.runOnUiThread(() -> Toast.makeText(mActivity, "File " + mIitcPath +
+                                "dev/" + filename + " not found. " +
+                                "Disable developer mode or add iitc files to the dev folder.",
+                        Toast.LENGTH_SHORT).show());
                 Log.w(e);
             }
         }
@@ -213,7 +214,7 @@ public class IITC_FileManager {
         final HashMap<String, String> info = getScriptInfo(content);
 
         final JSONObject jObject = new JSONObject(info);
-        final String gmInfo = "var GM_info={\"script\":" + jObject.toString() + "}";
+        final String gmInfo = "var GM_info={\"script\":" + jObject.toString() + "};\n";
 
         content = content.replace(WRAPPER_OLD, WRAPPER_NEW);
 
@@ -249,7 +250,7 @@ public class IITC_FileManager {
     }
 
     public void installPlugin(final Uri uri, final boolean invalidateHeaders) {
-        if (uri != null) {
+        if (uri != null && checkWriteStoragePermissionGranted()) {
             String text = mActivity.getString(R.string.install_dialog_msg);
             text = String.format(text, uri);
 
@@ -331,12 +332,13 @@ public class IITC_FileManager {
         // get the plugin preferences
         final TreeMap<String, ?> all_prefs = new TreeMap<String, Object>(mPrefs.getAll());
 
+        final Boolean forceSecureUpdates = mPrefs.getBoolean("pref_secure_updates", true);
         // iterate through all plugins
         for (final Map.Entry<String, ?> entry : all_prefs.entrySet()) {
             final String plugin = entry.getKey();
             if (plugin.endsWith(".user.js") && entry.getValue().toString().equals("true")) {
                 if (plugin.startsWith(PLUGINS_PATH)) {
-                    new UpdateScript(mActivity).execute(plugin);
+                    new UpdateScript(new ScriptUpdatedCallback(), forceSecureUpdates).execute(plugin);
                 }
             }
         }
@@ -346,8 +348,49 @@ public class IITC_FileManager {
                 .commit();
     }
 
+    private class ScriptUpdatedCallback implements UpdateScript.ScriptUpdatedFinishedCallback {
+        public void scriptUpdateFinished(String scriptName, Boolean updated) {
+            if (!updated) {
+                return;
+            }
+            new AlertDialog.Builder(mActivity)
+                    .setTitle("Plugin updated")
+                    .setMessage(scriptName)
+                    .setCancelable(true)
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(final DialogInterface dialog, final int which) {
+                            dialog.cancel();
+                        }
+                    })
+                    .setNegativeButton("Reload", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(final DialogInterface dialog, final int which) {
+                            dialog.cancel();
+                            ((IITC_Mobile) mActivity).reloadIITC();
+                        }
+                    })
+                    .create()
+                    .show();
+        }
+    }
+
+
     public void setUpdateInterval(final int interval) {
         mUpdateInterval = 1000 * 60 * 60 * 24 * interval;
+    }
+
+    public boolean checkWriteStoragePermissionGranted() {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (ActivityCompat.checkSelfPermission(mActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                return true;
+            } else {
+                ActivityCompat.requestPermissions(mActivity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+                return false;
+            }
+        } else { //permission is automatically granted on sdk<23 upon installation
+            return true;
+        }
     }
 
     private class FileRequest extends WebResourceResponse implements ResponseHandler, Runnable {
@@ -371,7 +414,7 @@ public class IITC_FileManager {
 
             // create the chooser Intent
             final Intent target = new Intent(Intent.ACTION_GET_CONTENT)
-                    .setType("text/*")
+                    .setType("*/*")
                     .addCategory(Intent.CATEGORY_OPENABLE);
             final IITC_Mobile iitc = (IITC_Mobile) mActivity;
 
