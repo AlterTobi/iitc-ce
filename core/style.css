@@ -152,6 +152,9 @@ a:hover {
   display: none;
 }
 
+.leaflet-control-container .leaflet-bottom {
+  margin-bottom: 0 !important;
+}
 
 
 .help {
@@ -831,6 +834,23 @@ h3.title {
   cursor: pointer;
   color: #FFCE00;
   font-size: 16px;
+}
+
+/* history details */
+#historydetails {
+  text-align: center;
+  color: #ffce00;
+}
+
+#historydetails .missing {
+}
+
+#historydetails span {
+  color: #ff4a4a;
+}
+
+#historydetails span.completed {
+  color: #03fe03;
 }
 
 /* update status */

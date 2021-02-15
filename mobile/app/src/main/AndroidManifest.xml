@@ -8,13 +8,18 @@
     <uses-permission android:name="android.permission.NFC"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:name="org.exarhteam.iitc_mobile.IITC_Application"
         android:allowBackup="true"
         android:icon="@drawable/ic_iitcm"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:theme="@style/AppBaseTheme">
+        <activity android:name="org.exarhteam.iitc_mobile.IntroActivity"
+            android:label="app_intro" />
+
         <activity
             android:name="org.exarhteam.iitc_mobile.IITC_Mobile"
             android:configChanges="orientation|keyboard|keyboardHidden|screenSize|uiMode"
@@ -100,6 +105,7 @@
 
                 <data android:mimeType="application/javascript"/>
                 <data android:mimeType="text/javascript"/>
+                <data android:mimeType="text/plain"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
@@ -108,8 +114,6 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
 
-                <data android:scheme="content"/>
-                <data android:scheme="file"/>
                 <data android:scheme="http"/>
                 <data android:scheme="https"/>
                 <data android:host="*" android:pathPattern=".*\\.user.js"/>

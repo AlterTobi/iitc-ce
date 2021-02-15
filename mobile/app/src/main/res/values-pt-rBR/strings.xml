@@ -10,7 +10,6 @@
     <string name="download_description">Baixando o último pacote intel…</string>
     <string name="pref_about_title">Sobre o IITC Mobile</string>
     <string name="notice_info">&lt;p&gt;Dica: Formas alternativas de abrir a tela de informações: &lt;p&gt; • toque e segure um portal por um segundo&lt;br&gt; • toque na metade esquerda da barra de status&lt;br&gt;</string>
-    <string name="notice_panes">&lt;p&gt;Dica: &lt;p&gt;Alguns plugins (por exemplo, &lt;em&gt;lista de portais&lt;/em&gt; e &lt;em&gt;marcadores&lt;/em&gt;) agora aparecem na gaveta de navegação &lt;em&gt;&lt;/em&gt; para acesso rápido. &lt;p&gt;Eles não aparecerão mais no painel de informações. &lt;p&gt;Deslize da borda esquerda da tela (ou clique no ícone do aplicativo) para parecer.</string>
     <string name="notice_extplugins">&lt;p&gt;Dica: &lt;p&gt;o IITC Mobile também pode carregar plugins externos! &lt;p&gt; Adicione-os clicando no ícone (+) no canto superior direito. Os arquivos do plug-in precisam terminar com \'.user.js\' e são copiados para &lt;b&gt;%1$s&lt;/b&gt;</string>
     <string name="pref_secure_updates_sum">Se ativado, apenas atualizações https são tratadas</string>
     <string name="login_failed">O login falhou.</string>
@@ -86,10 +85,65 @@
     <string name="install_dialog_msg">&lt;p&gt;O IITCm foi solicitado a instalar o seguinte arquivo javascript:&lt;p&gt;%1$s&lt;p&gt;&lt;b&gt;Cuidado:&lt;/b&gt;Javascript de fontes externas pode conter código malicioso (spyware etc.)!&lt;p&gt;Tem certeza de que deseja continuar\?</string>
     <string name="drawer_close">Ocultar menu de navegação</string>
     <string name="pref_about_text">&lt;h1&gt;Ingress Intel Total Conversion Mobile&lt;/h1&gt; &lt;p&gt;&lt;b&gt;Versão da Build: ${build_version}&lt;/b&gt; &lt;br&gt;&lt;b&gt;Versão do IITC: ${iitc_version}&lt;/b&gt; &lt;p&gt;&lt;b&gt;por ${cradle_link}, ${fkloft_link} e colaboradores&lt;/b&gt; &lt;p&gt;&lt;b&gt;Icone por ${giuseppe_lucido_link}&lt;/b&gt; &lt;p&gt;&lt;b&gt;IITC Mobile&lt;/b&gt; é um navegador móvel otimizado para o &lt;i&gt;Ingress Intel Total Conversion (IITC)&lt;/i&gt; userscript. &lt;h3&gt;Comunidade:&lt;/h3&gt; • Visite ${website_link} para novos lançamentos e a versão para desktop.&lt;br&gt; • Acompanhe o ${tg_iitc_news_link} canal de Telegram para anúncios e participe ${tg_iitc_group_link} do chat.&lt;br&gt; • Participe da ${reddit_iitc_link} Comunidade no Reddit - um lugar para pedir ajuda e discutir com outros usuários.&lt;br&gt; • Relatar problemas e propor melhorias em ${bugtracker_link}.&lt;br&gt; &lt;h3&gt;Desenvolvedores:&lt;/h3&gt; ${github_iitc_link} no Github. &lt;h3&gt;Licença do IITC:&lt;/h3&gt; ${ISC_license_text}</string>
-    <string name="notice_how_to">&lt;h3&gt;Como usar o IITCm:&lt;/h3&gt;•Navegação: deslize a partir da borda esquerda da tela (ou clique no ícone do aplicativo) para abrir a&lt;em&gt;Gaveta de Navegação &lt;/em&gt;.&lt;br&gt;Clique no ícone do aplicativo novamente para retornar ao mapa. &lt;br&gt;•Camadas/destaques: deslize a partir da borda direita da tela (ou clique no ícone do seletor de camadas na Barra de Ação) para abrir a&lt;em&gt;Camada de gaveta&lt;/em&gt;.&lt;br &gt;•Você pode enviar rapidamente o link/link permanente do portal atual para outro dispositivo se ambos os dispositivos forem compatíveis com NFC (mantenha os dois dispositivos lado a lado e toque na tela para transmitir o mapa para o outro dispositivo).&lt;br&gt;•Você pode adicionar plugins oficiais nas configurações.&lt;br&gt;•Para plugins externos, consulte as &lt;a href=https://iitc.app/faq.html&gt;Perguntas frequentes.&lt;br&gt;</string>
     <string name="notice_sharing">&lt;p&gt;Com o &lt;em&gt;Compartilhar portal /em&gt;, você pode:&lt;p&gt; • enviar o link do portal para outras pessoas &lt;br&gt; • exibir a posição do portal selecionado em outro aplicativo&lt;br&gt; • abrir o link do portal em um navegador da web &lt;br&gt;&lt;p&gt;Dica: Ao selecionar o Google Maps (ou qualquer outro software de navegação instalado), você pode navegar rapidamente para o portal selecionado.&lt;p&gt; Essas dicas também se aplicam ao &lt;em&gt;link permanente&lt;/em&gt;.</string>
     <string name="activity_settings">Configurações do IITC Mobile</string>
     <string name="pref_persistent_zoom_sum">Não altere o nível de zoom quando o botão localizar estiver pressionado</string>
     <string name="iitc_website">Site IITC</string>
     <string name="bugtracker">bugtracker</string>
+    <string name="appintro_nfc_description">Você pode enviar rapidamente o link/link permanente do portal atual para outro dispositivo se ambos os dispositivos suportarem NFC.
+\n
+\nSegure ambos os dispositivos costas com costas e toque na tela para enviar o mapa para o outro dispositivo.</string>
+    <string name="plugins_permission_denied">Permissão negada. Você não pode adicionar plugins.</string>
+    <string name="appintro_plugins_description">Você pode começar a usar o IITC-CE agora.
+\n
+\n Mas a principal vantagem sobre o mapa oficial Intel do Ingress é a abundância de plugins que expandem os recursos.
+\n
+\n Você pode adicionar plug-ins oficiais ou externos nas configurações.</string>
+    <string name="appintro_navigation_description"> Deslize a partir da borda esquerda da tela (ou clique no ícone de menu) para abrir a <i>gaveta de navegação</i>.
+\n Clique no ícone voltar para retornar ao mapa.
+\n
+\n Alguns plugins (por exemplo, <i>lista de portais</i> e <i>favoritos</i>) agora aparecem na <i>gaveta de navegação</i> para acesso rápido.
+\n Eles não aparecerão mais no painel de informações. </string>
+    <string name="appintro_welcome_description">Esta é uma versão móvel do auxiliar indispensável para o player do Ingress.
+\n
+\n Ingress Intel Total Conversion (IITC) é um add-on que funciona como uma sobreposição para o mapa oficial Intel do Ingress.
+\n
+\n O IITC muda completamente a maneira como você trabalha com o mapa, aumenta significativamente a eficiência aplicando aceleração de hardware e expande os recursos através do uso de vários plugins.</string>
+    <string name="pane_map">Mapa</string>
+    <string name="pane_info">Informações</string>
+    <string name="pane_alerts">Alertas</string>
+    <string name="pane_faction">Facção</string>
+    <string name="pane_all">Todos</string>
+    <string name="plugin_updated">Plugin atualizado</string>
+    <string name="toast_press_twice_to_exit">Pressione duas vezes para sair</string>
+    <string name="plugins_user_plugins">Plugins do usuário</string>
+    <string name="plugins_official_plugins">Plugins oficiais</string>
+    <string name="file_browser_choose_file">Escolher arquivo</string>
+    <string name="file_browser_is_required">Nenhuma aplicação para selecionar um arquivo foi encontrada. Instale um navegador de arquivos de sua escolha!</string>
+    <string name="plugins_permission_granted">Permissão garantida. Repita a ação.</string>
+    <string name="show_appintro_screen_title">Mostrar tela de introdução</string>
+    <string name="appintro_plugins_title">Plugins</string>
+    <string name="appintro_layers_description"> Deslize a partir da borda direita da tela (ou clique no ícone do seletor de camadas na barra de navegação) para invocar a <i>Gaveta de camadas</i>.
+\n
+\n Aqui você pode alterar o serviço de mapas online ou habilitar/desabilitar a exibição de elementos necessários no mapa. </string>
+    <string name="appintro_layers_title">Camadas/Destaques</string>
+    <string name="appintro_navigation_title">Navegação</string>
+    <string name="appintro_nfc_title">Permissão NFC</string>
+    <string name="appintro_location_description">O IITC-CE Mobile requer permissão para acessar sua localização para facilitar a navegação.
+\n
+\n Mas não se preocupe: não enviamos dados sobre sua localização para lugar nenhum.</string>
+    <string name="appintro_location_title">Permissão de localização</string>
+    <string name="pref_update_plugins_interval_2_weeks">2 Semanas</string>
+    <string name="pref_update_plugins_interval_1_week">1 Semana</string>
+    <string name="pref_update_plugins_interval_2_days">2 Dias</string>
+    <string name="pref_update_plugins_interval_1_day">1 dia</string>
+    <string name="pref_update_plugins_interval_disable">Desabilitar</string>
+    <string name="pref_user_location_show_position_and_orientation">Mostrar a posição e orientação do usuário no mapa</string>
+    <string name="pref_user_location_show_position">Mostrar a posição do usuário no mapa</string>
+    <string name="pref_user_location_dont_show">Não mostrar a posição do usuário</string>
+    <string name="pref_hide_fullscreen_navigation_bar">Barra de navegação do sistema</string>
+    <string name="pref_hide_fullscreen_status_bar">Barra de status do IITC</string>
+    <string name="pref_hide_fullscreen_action_bar">Barra de Ação do IITC</string>
+    <string name="pref_hide_fullscreen_notification_bar">Barra de Notificação do Sistema</string>
+    <string name="pref_language">Idioma</string>
 </resources>

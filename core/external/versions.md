@@ -1,8 +1,8 @@
 ### jQuery-related components:
 
 * https://jquery.com/
-  3.4.1
-  https://code.jquery.com/jquery-3.4.1.min.js
+  3.5.1
+  https://code.jquery.com/jquery-3.5.1.min.js
 
 * https://jqueryui.com/
   1.12.1
@@ -20,7 +20,7 @@
 ### Leaflet-related components:
 
 * https://leafletjs.com/download.html
-  1.6.0
+  1.7.1+master.7db94fd
   leaflet-src.js, leaflet.css, images/*
 
 * https://gitlab.com/IvanSanchez/Leaflet.GridLayer.GoogleMutant
@@ -51,5 +51,5 @@
   used in: chat.js
 
 * https://github.com/Download/ulog
-  2.0.0-beta.6-2-gfc5a47e
-  ulog.min.js: 558b6c7dc071f877252509f104134eec0183ab4b
+  2.0.0-beta.7
+  ulog.min.js: 423ce1c6dc1c8c2a2ecae13e6dbb99308e301eba

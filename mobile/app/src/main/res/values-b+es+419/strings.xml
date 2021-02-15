@@ -21,7 +21,6 @@
     <string name="menu_delete">Borrar</string>
     <string name="choose_account_to_login">Elige una cuenta para iniciar sesión</string>
     <string name="msg_take_screenshot">Tomando captura de pantalla…</string>
-    <string name="notice_panes">&lt;p&gt;Consejo: &lt;p&gt;Algunos plugins (ej. &lt;em&gt;portals list&lt;/em&gt; y &lt;em&gt;bookmarks&lt;/em&gt;) ahora aparecen en el &lt;em&gt;Panel de Navegación&lt;/em&gt; para un acceso rápido. &lt;p&gt;Ya no aparecerán en el Panel de Información. &lt;p&gt;Desliza desde el borde izquierdo de tu pantalla (o haz clic en el ícono de la aplicación) para que aparezcan.</string>
     <string name="sign_in_to">Inicia sesión en %1$s %2$s</string>
     <string name="pref_about_text">&lt;h1&gt;Ingress Intel Total Conversion Mobile&lt;/h1&gt; &lt;p&gt;&lt;b&gt;Versión de compilación: ${build_version}&lt;/b&gt; &lt;br&gt;&lt;b&gt;Versión IITC: ${iitc_version}&lt;/b&gt; &lt;p&gt;&lt;b&gt;por ${cradle_link}, ${fkloft_link} y colaboradores&lt;/b&gt; &lt;p&gt;&lt;b&gt;Ícono por ${giuseppe_lucido_link}&lt;/b&gt; &lt;p&gt;&lt;b&gt;IITC Mobile&lt;/b&gt; es un navegador móvil optimizado para el script de usuario de &lt;i&gt;Ingress Intel Total Conversion (IITC)&lt;/i&gt;. &lt;h3&gt;Comunidad:&lt;/h3&gt; • Visita el ${website_link} para nuevos lanzamientos y la versión de escritorio.&lt;br&gt; • Sigue el ${tg_iitc_news_link} en Telegram para anuncios y únete al ${tg_iitc_group_link}.&lt;br&gt; • Únete a la ${reddit_iitc_link} comunidad en Reddit - un lugar para pedir ayuda y discutir con otros usuarios.&lt;br&gt; • Informa problemas y propón mejoras en ${bugtracker_link}.&lt;br&gt; &lt;h3&gt;Desarrolladores:&lt;/h3&gt; ${github_iitc_link} en Github. &lt;h3&gt;Licencia IITC:&lt;/h3&gt; ${ISC_license_text}</string>
     <string name="pref_plugins_sum">Los plugins amplían/modifican la experiencia de IITC. La mayoría de los plugins conocidos de IITC de escritorio se pueden encontrar aquí.</string>
@@ -56,7 +55,6 @@
     <string name="pref_advanced_options_sum">Opciones de desarrollador y ajustes avanzados</string>
     <string name="pref_enable_dev_mode">Activar modo de desarrollador</string>
     <string name="pref_disable_splash">Desactivar pantalla de bienvenida</string>
-    <string name="notice_how_to">&lt;h3&gt;Cómo usar IITCm:&lt;/h3&gt; • Navegación: desliza desde el borde izquierdo de tu pantalla (o haz clic en el ícono de la aplicación) para mostrar el &lt;em&gt;Panel de Navegación&lt;/em&gt;.&lt;br&gt; Haz clic en el ícono de la aplicación nuevamente para regresar al mapa.&lt;br&gt; • Capas/Resaltados: desliza desde el borde derecho de tu pantalla (o haz clic en el ícono de selector de capas en la Barra de Acciones) para mostrar el &lt;em&gt;Panel de Capas&lt;/em&gt;.&lt;br&gt; • Puedes enviar rápidamente el enlace/enlace permanente del portal actual a otro dispositivo si ambos dispositivos son compatibles con NFC (mantén ambos dispositivos juntos y toca la pantalla para transmitir el mapa al otro dispositivo).&lt;br&gt; • Puedes agregar plugins oficiales en la configuración.&lt;br&gt; • Para plugins externos, echa un vistazo a las &lt;a href=https://iitc.modos189.ru/faq.html&gt;Preguntas más frecuentes.&lt;br&gt;</string>
     <string name="notice_info">&lt;p&gt;Consejo: Formas alternativas de abrir la pantalla de información: &lt;p&gt; • mantén presionado un portal por un segundo&lt;br&gt; • presiona la mitad izquierda de la barra de estado&lt;br&gt;</string>
     <string name="pref_misc_cat">Varios</string>
     <string name="pref_plugins">Plugins IITC</string>
@@ -90,4 +88,51 @@
     <string name="notice_extplugins">&lt;p&gt;Consejo: &lt;p&gt;¡IITC Mobile es capaz también de cargar plugins externos! &lt;p&gt;Agrégalos haciendo clic en el ícono (+) en la esquina superior derecha. Los archivos de los plugins deben terminar con \'.user.js\' y se copian en &lt;b&gt;%1$s&lt;/b&gt;</string>
     <string name="pref_fake_user_agent_sum">Deje que IITCm aparezca como un navegador de escritorio para el sitio de Intel. Nota: Si solo desea usar el modo de escritorio, use la configuración \'forzar modo de escritorio\'</string>
     <string name="pref_enable_dev_mode_sum">Si está habilitado, todas las fuentes IITC se cargarán desde el almacenamiento externo del dispositivo Android. Por favor, copia todas las fuentes de $IITC_folder/build/mobile/ a /sdcard/IITC_Mobile/dev/.</string>
+    <string name="pref_update_plugins_interval_2_weeks">2 semanas</string>
+    <string name="pref_update_plugins_interval_1_week">1 semana</string>
+    <string name="pref_update_plugins_interval_2_days">2 días</string>
+    <string name="pref_update_plugins_interval_1_day">1 día</string>
+    <string name="pref_update_plugins_interval_disable">Deshabilitar</string>
+    <string name="pref_user_location_show_position_and_orientation">Mostrar posición y orientación del usuario en el mapa</string>
+    <string name="pref_user_location_show_position">Mostrar la posición de usuario en el mapa</string>
+    <string name="pref_language">Idioma</string>
+    <string name="iitc_website">Sitio web de IITC</string>
+    <string name="pref_hide_fullscreen_navigation_bar">Barra de Navegación del Sistema</string>
+    <string name="appintro_plugins_description">Puedes comenzar a utilizar IITC-CE ya mismo.
+\n
+\nPero la ventaja principal sobre el Intel Map oficial para Ingress es la abundancia de plugins que aumentan sus capacidades.
+\n
+\nPuedes agregar plugins oficiales o externos en la configuración.</string>
+    <string name="appintro_layers_title">Capas/Resaltadores</string>
+    <string name="appintro_navigation_title">Navegación</string>
+    <string name="appintro_nfc_description">Puedes enviar rápidamente el link/permalink del portal actual a otro dispositivo si ambos soportan NFC.
+\n
+\nColoca ambos dispositivos back-to-back y toca la pantalla para enviar el mapa al otro dispositivo.</string>
+    <string name="appintro_location_description">IITC-CE Mobile necesita permiso para acceder a tu ubicación para facilitar la navegación.
+\n
+\nPero no te preocupes: no enviamos datos de tu ubicación a ninguna parte.</string>
+    <string name="appintro_welcome_description">Esta es una versión para móvil del complemento indispensable para el jugador de Ingress
+\n
+\nIngress Intel Total Conversion (IITC) es un complemento que trabaja en superposición con el Intel Map oficial de Ingress.
+\n
+\nIITC cambia por completo la manera en que trabajas con el mapa, incrementa significativamente su eficiencia aplicando aceleración por hardware y amplía sus capacidades a través del uso de varios plugins.</string>
+    <string name="pref_user_location_dont_show">No mostrar la posición del usuario</string>
+    <string name="pref_hide_fullscreen_status_bar">Barra de Estado IITC</string>
+    <string name="pref_hide_fullscreen_action_bar">Barra de Acción de IITC</string>
+    <string name="pref_hide_fullscreen_notification_bar">Barra de Notificaciones del Sistema</string>
+    <string name="bugtracker">Reporte de bugs</string>
+    <string name="show_appintro_screen_title">Mostrar pantalla de inicio</string>
+    <string name="plugins_permission_denied">Permiso denegado. No puedes agregar plugins.</string>
+    <string name="plugins_permission_granted">Permiso otorgado. Por favor repite la acción.</string>
+    <string name="file_browser_is_required">No se ha encontrado una actividad para seleccionar un archivo. ¡Por favor instale un explorador de archivos de su elección!</string>
+    <string name="file_browser_choose_file">Seleccione archivo</string>
+    <string name="plugins_user_plugins">Plugins del usuario</string>
+    <string name="plugins_official_plugins">Plugins Oficiales</string>
+    <string name="toast_press_twice_to_exit">Presione dos veces para salir</string>
+    <string name="plugin_updated">Plugin actualizado</string>
+    <string name="pane_all">Todos</string>
+    <string name="pane_faction">Facción</string>
+    <string name="pane_alerts">Alertas</string>
+    <string name="pane_info">Información</string>
+    <string name="pane_map">Mapa</string>
 </resources>

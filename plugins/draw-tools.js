@@ -1,8 +1,8 @@
 // @author         breunigs
 // @name           Draw tools
 // @category       Draw
-// @version        0.7.2
-// @description    Allow drawing things onto the current map so you may plan your next move.
+// @version        0.8.0
+// @description    Allow drawing things onto the current map so you may plan your next move. Supports Multi-Project-Extension.
 
 
 // HOOK: pluginDrawTools
@@ -10,6 +10,16 @@
 
 // use own namespace for plugin
 window.plugin.drawTools = function() {};
+
+window.plugin.drawTools.KEY_STORAGE = 'plugin-draw-tools-layer';
+
+window.plugin.drawTools.merge = {};
+window.plugin.drawTools.merge.status = true;
+window.plugin.drawTools.merge.toggle = function() {
+  var status = window.plugin.drawTools.merge.status;
+  status = Boolean(!status);
+  window.plugin.drawTools.merge.status = status;
+ }
 
 window.plugin.drawTools.getMarkerIcon = function(color) {
   if (!color) {
@@ -201,15 +211,14 @@ window.plugin.drawTools.save = function() {
 
     data.push(item);
   });
-
-  localStorage['plugin-draw-tools-layer'] = JSON.stringify(data);
+  localStorage[window.plugin.drawTools.KEY_STORAGE] = JSON.stringify(data);
 
   console.log('draw-tools: saved to localStorage');
 }
 
 window.plugin.drawTools.load = function() {
   try {
-    var dataStr = localStorage['plugin-draw-tools-layer'];
+    var dataStr = localStorage[window.plugin.drawTools.KEY_STORAGE];
     if (dataStr === undefined) return;
 
     var data = JSON.parse(dataStr);
@@ -260,6 +269,10 @@ window.plugin.drawTools.import = function(data) {
 
 // Manual import, export and reset data
 window.plugin.drawTools.manualOpt = function() {
+  var mergeStatusCheck = '';
+  if(!window.plugin.drawTools.merge.status){
+    mergeStatusCheck = 'checked';
+  }
 
   var html = '<div class="drawtoolsStyles">'
            + '<input type="color" name="drawColor" id="drawtools_color"></input>'
@@ -272,6 +285,8 @@ window.plugin.drawTools.manualOpt = function() {
            + '<a onclick="window.plugin.drawTools.optExport();return false;" tabindex="0">Export Drawn Items</a>'
            + '<a onclick="window.plugin.drawTools.optReset();return false;" tabindex="0">Reset Drawn Items</a>'
            + '<a onclick="window.plugin.drawTools.snapToPortals();return false;" tabindex="0">Snap to portals</a>'
+           + '<center><label id="MergeToggle"><input type="checkbox" '+mergeStatusCheck+' name="merge" '
+           +   'onchange="window.plugin.drawTools.merge.toggle();return false;" />Reset draws before paste or import</label></center>'
            + '</div>';
 
   dialog({
@@ -300,74 +315,91 @@ window.plugin.drawTools.manualOpt = function() {
 }
 
 window.plugin.drawTools.optAlert = function(message) {
-    $('.ui-dialog-drawtoolsSet .ui-dialog-buttonset').prepend('<p class="drawtools-alert" style="float:left;margin-top:4px;">'+message+'</p>');
-    $('.drawtools-alert').delay(2500).fadeOut();
+  $('.ui-dialog-drawtoolsSet .ui-dialog-buttonset').prepend('<p class="drawtools-alert" style="float:left;margin-top:4px;">'+message+'</p>');
+  $('.drawtools-alert').delay(2500).fadeOut();
+}
+
+window.plugin.drawTools.isEmpty = function() {
+  var data = window.localStorage[window.plugin.drawTools.KEY_STORAGE];
+  if (!data || data.length <= 2) {
+    dialog({
+      html: 'Error! The storage is empty or not exist. Before you try copy/export you draw something.',
+      width: 250,
+      dialogClass: 'ui-dialog-drawtools-message',
+      title: 'Draw Tools Message'
+    });
+    return true
+  }
 }
 
 window.plugin.drawTools.optCopy = function() {
-    if (typeof android !== 'undefined' && android && android.shareString) {
-        android.shareString(localStorage['plugin-draw-tools-layer']);
-    } else {
-      var stockWarnings = {};
-      var stockLinks = [];
-      window.plugin.drawTools.drawnItems.eachLayer( function(layer) {
-        if (layer instanceof L.GeodesicCircle || layer instanceof L.Circle) {
-          stockWarnings.noCircle = true;
-          return; //.eachLayer 'continue'
-        } else if (layer instanceof L.GeodesicPolygon || layer instanceof L.Polygon) {
-          stockWarnings.polyAsLine = true;
-          // but we can export them
-        } else if (layer instanceof L.GeodesicPolyline || layer instanceof L.Polyline) {
-          // polylines are fine
-        } else if (layer instanceof L.Marker) {
-          stockWarnings.noMarker = true;
-          return; //.eachLayer 'continue'
-        } else {
-          stockWarnings.unknown = true; //should never happen
-          return; //.eachLayer 'continue'
-        }
-        // only polygons and polylines make it through to here
-        var latLngs = layer.getLatLngs();
-        // stock only handles one line segment at a time
-        for (var i=0; i<latLngs.length-1; i++) {
-          stockLinks.push([latLngs[i].lat,latLngs[i].lng,latLngs[i+1].lat,latLngs[i+1].lng]);
-        }
-        // for polygons, we also need a final link from last to first point
-        if (layer instanceof L.GeodesicPolygon || layer instanceof L.Polygon) {
-          stockLinks.push([latLngs[latLngs.length-1].lat,latLngs[latLngs.length-1].lng,latLngs[0].lat,latLngs[0].lng]);
-        }
-      });
-      var stockUrl = window.makePermalink(null, {
-        includeMapView: true,
-        fullURL: true
-      }) + '&pls='+stockLinks.map(function(link){return link.join(',');}).join('_');
-      var stockWarnTexts = [];
-      if (stockWarnings.polyAsLine) stockWarnTexts.push('Note: polygons are exported as lines');
-      if (stockLinks.length>40) stockWarnTexts.push('Warning: Stock intel may not work with more than 40 line segments - there are '+stockLinks.length);
-      if (stockWarnings.noCircle) stockWarnTexts.push('Warning: Circles cannot be exported to stock intel');
-      if (stockWarnings.noMarker) stockWarnTexts.push('Warning: Markers cannot be exported to stock intel');
-      if (stockWarnings.unknown) stockWarnTexts.push('Warning: UNKNOWN ITEM TYPE');
+  if (window.plugin.drawTools.isEmpty()) { return; }
 
-      var html = '<p><a onclick="$(\'.ui-dialog-drawtoolsSet-copy textarea\').select();">Select all</a> and press CTRL+C to copy it.</p>'
-                +'<textarea readonly onclick="$(\'.ui-dialog-drawtoolsSet-copy textarea\').select();">'+localStorage['plugin-draw-tools-layer']+'</textarea>'
-                +'<p>or, export as a link for the standard intel map (for non IITC users)</p>'
-                +'<input onclick="event.target.select();" type="text" size="90" value="'+stockUrl+'"/>';
-      if (stockWarnTexts.length>0) {
-        html += '<ul><li>'+stockWarnTexts.join('</li><li>')+'</li></ul>';
+  if (typeof android !== 'undefined' && android.shareString) {
+    android.shareString(window.localStorage[window.plugin.drawTools.KEY_STORAGE]);
+  } else {
+    var stockWarnings = {};
+    var stockLinks = [];
+    window.plugin.drawTools.drawnItems.eachLayer( function(layer) {
+      if (layer instanceof L.GeodesicCircle || layer instanceof L.Circle) {
+        stockWarnings.noCircle = true;
+        return; //.eachLayer 'continue'
+      } else if (layer instanceof L.GeodesicPolygon || layer instanceof L.Polygon) {
+        stockWarnings.polyAsLine = true;
+        // but we can export them
+      } else if (layer instanceof L.GeodesicPolyline || layer instanceof L.Polyline) {
+        // polylines are fine
+      } else if (layer instanceof L.Marker) {
+        stockWarnings.noMarker = true;
+        return; //.eachLayer 'continue'
+      } else {
+        stockWarnings.unknown = true; //should never happen
+        return; //.eachLayer 'continue'
       }
+      // only polygons and polylines make it through to here
+      var latLngs = layer.getLatLngs();
+      // stock only handles one line segment at a time
+      for (var i=0; i<latLngs.length-1; i++) {
+        stockLinks.push([latLngs[i].lat,latLngs[i].lng,latLngs[i+1].lat,latLngs[i+1].lng]);
+      }
+      // for polygons, we also need a final link from last to first point
+      if (layer instanceof L.GeodesicPolygon || layer instanceof L.Polygon) {
+        stockLinks.push([latLngs[latLngs.length-1].lat,latLngs[latLngs.length-1].lng,latLngs[0].lat,latLngs[0].lng]);
+      }
+    });
+    var stockUrl = window.makePermalink(null, {
+      includeMapView: true,
+      fullURL: true
+    }) + '&pls='+stockLinks.map(function(link){return link.join(',');}).join('_');
+    var stockWarnTexts = [];
+    if (stockWarnings.polyAsLine) stockWarnTexts.push('Note: polygons are exported as lines');
+    if (stockLinks.length>40) stockWarnTexts.push('Warning: Stock intel may not work with more than 40 line segments - there are '+stockLinks.length);
+    if (stockWarnings.noCircle) stockWarnTexts.push('Warning: Circles cannot be exported to stock intel');
+    if (stockWarnings.noMarker) stockWarnTexts.push('Warning: Markers cannot be exported to stock intel');
+    if (stockWarnings.unknown) stockWarnTexts.push('Warning: UNKNOWN ITEM TYPE');
 
-      dialog({
-        html: html,
-        width: 600,
-        dialogClass: 'ui-dialog-drawtoolsSet-copy',
-        id: 'plugin-drawtools-export',
-        title: 'Draw Tools Export'
-        });
+    var html = '<p><a onclick="$(\'.ui-dialog-drawtoolsSet-copy textarea\').select();">Select all</a> and press CTRL+C to copy it.</p>'
+              +'<textarea readonly onclick="$(\'.ui-dialog-drawtoolsSet-copy textarea\').select();">'+window.localStorage[window.plugin.drawTools.KEY_STORAGE]+'</textarea>'
+              +'<p>or, export as a link for the standard intel map (for non IITC users)</p>'
+              +'<input onclick="event.target.select();" type="text" size="90" value="'+stockUrl+'"/>';
+    if (stockWarnTexts.length>0) {
+      html += '<ul><li>'+stockWarnTexts.join('</li><li>')+'</li></ul>';
     }
+
+    dialog({
+      html: html,
+      width: 600,
+      dialogClass: 'ui-dialog-drawtoolsSet-copy',
+      id: 'plugin-drawtools-export',
+      title: 'Draw Tools Export'
+      });
+  }
 }
 
 window.plugin.drawTools.optExport = function() {
-  var data = localStorage['plugin-draw-tools-layer'];
+  if (window.plugin.drawTools.isEmpty()) { return };
+
+  var data = localStorage[window.plugin.drawTools.KEY_STORAGE];
   window.saveFile(data, 'IITC-drawn-items.json', 'application/json');
 }
 
@@ -412,17 +444,26 @@ window.plugin.drawTools.optPaste = function() {
         }
 
         // all parsed OK - clear and insert
-        window.plugin.drawTools.drawnItems.clearLayers();
+        if (!window.plugin.drawTools.merge.status) {
+          window.plugin.drawTools.drawnItems.clearLayers();
+        }
         for (var i=0; i<newLines.length; i++) {
           window.plugin.drawTools.drawnItems.addLayer(newLines[i]);
         }
         runHooks('pluginDrawTools', {event: 'import'});
 
-        console.log('DRAWTOOLS: reset and imported drawn items from stock URL');
+        console.log('DRAWTOOLS: '+(window.plugin.drawTools.merge.status?'':'reset and ')+'pasted drawn items from stock URL');
         window.plugin.drawTools.optAlert('Import Successful.');
 
 
       } else {
+        if (window.plugin.drawTools.merge.status) {
+          promptAction = (typeof(
+            window.localStorage[window.plugin.drawTools.KEY_STORAGE]) !== 'undefined' &&
+            window.localStorage[window.plugin.drawTools.KEY_STORAGE].length > 4
+              ? window.localStorage[window.plugin.drawTools.KEY_STORAGE].slice(0,-1) + ',' + promptAction.slice(1)
+              : promptAction);
+        }
         var data;
           try{
             data = JSON.parse(promptAction);
@@ -439,7 +480,7 @@ window.plugin.drawTools.optPaste = function() {
         }
         window.plugin.drawTools.drawnItems.clearLayers();
         window.plugin.drawTools.import(data);
-        console.log('DRAWTOOLS: reset and imported drawn items');
+        console.log('DRAWTOOLS: '+(window.plugin.drawTools.merge.status?'':'reset and ')+'pasted drawn items');
         window.plugin.drawTools.optAlert('Import Successful.');
       }
 
@@ -457,9 +498,11 @@ window.plugin.drawTools.optImport = function() {
     .on('load',function (e) {
       try {
         var data = JSON.parse(e.reader.result);
-        window.plugin.drawTools.drawnItems.clearLayers();
+        if (!window.plugin.drawTools.merge.status) {
+          window.plugin.drawTools.drawnItems.clearLayers();
+        }
         window.plugin.drawTools.import(data);
-        console.log('DRAWTOOLS: reset and imported drawn tiems');
+        console.log('DRAWTOOLS: '+(window.plugin.drawTools.merge.status?'':'reset and ')+'imported drawn items');
         window.plugin.drawTools.optAlert('Import Successful.');
 
         // to write back the data to localStorage
@@ -474,7 +517,7 @@ window.plugin.drawTools.optImport = function() {
 window.plugin.drawTools.optReset = function() {
   var promptAction = confirm('All drawn items will be deleted. Are you sure?', '');
   if(promptAction) {
-    delete localStorage['plugin-draw-tools-layer'];
+    localStorage[window.plugin.drawTools.KEY_STORAGE] = '[]';
     window.plugin.drawTools.drawnItems.clearLayers();
     window.plugin.drawTools.load();
     console.log('DRAWTOOLS: reset all drawn items');
@@ -643,9 +686,61 @@ window.plugin.drawTools.boot = function() {
 
 }
 
+// ---------------------------------------------------------------------------------
+// MPE - MULTI PROJECTS EXTENSION
+// ---------------------------------------------------------------------------------
+window.plugin.drawTools.mpe = {};
+window.plugin.drawTools.mpe.ui = {};
+
+window.plugin.drawTools.mpe.boot = function(){
+  window.plugin.drawTools.mpe.initMPE();
+};
+
+
+window.plugin.drawTools.mpe.initMPE = function(){
+  // Not launch the code if the MPE plugin there isn't.
+  if(!window.plugin.mpe){ return; }
+
+  // The MPE function to set a MultiProjects type
+  window.plugin.mpe.setMultiProjects({
+    namespace: 'drawTools',
+    title: 'Draw Tools Layer',
+    // Font awesome css class
+    fa: 'fa-pencil',
+    // Function to change a localstorage key
+    func_setKey: function(newKey){
+      window.plugin.drawTools.KEY_STORAGE = newKey;
+    },
+    // Native value of localstorage key
+    defaultKey: 'plugin-draw-tools-layer',
+    // This function is run before the localstorage key change
+    func_pre: function(){},
+    // This function is run after the localstorage key change
+    func_post: function(){
+      window.plugin.drawTools.drawnItems.clearLayers();
+      window.plugin.drawTools.load();
+      console.log('DRAWTOOLS: reset all drawn items (func_post)');
+
+      if (window.plugin.crossLinks !== undefined && window.overlayStatus['Cross Links']) {
+        window.plugin.crossLinks.checkAllLinks();
+
+        if (window.plugin.destroyedLinks !== undefined && window.overlayStatus['Destroyed Links Simulator']){
+          window.plugin.destroyedLinks.cross.removeCrossAll();
+        }
+      }
+
+      // Code to:
+      // hide/remove elements from DOM, layers, variables, etc...
+      // load data from window.localStorage[window.plugin.myPlugin.KEY_STORAGE]
+      // show/add/draw elements in the DOM, layers, variables, etc...
+    }
+  });
+}
+
 function setup () {
-  loadExternals();
-  window.plugin.drawTools.boot();
+  loadExternals();                              // initialize leaflet
+  window.plugin.drawTools.boot();               // initialize drawtools
+  window.plugin.drawTools.mpe.boot();           // register to MPE if available
 }
 
 function loadExternals () {
