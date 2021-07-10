@@ -64,7 +64,7 @@ i.large { font-size: 6rem; }
   top: 0;
   width: 340px;
   bottom: 45px;
-  z-index: 1001;
+  z-index: 3001;
   pointer-events: none;
 }
 
@@ -78,7 +78,6 @@ i.large { font-size: 6rem; }
   max-height: 100%;
   overflow-y:scroll;
   overflow-x:hidden;
-  z-index: 3000;
   pointer-events: auto;
 }
 
@@ -89,7 +88,7 @@ i.large { font-size: 6rem; }
   line-height: 10px;
   position: absolute;
   top: 108px;
-  z-index: 3001;
+  z-index: 3002;
   background-color: rgba(8, 48, 78, 0.9);
   color: #FFCE00;
   border: 1px solid #20A8B1;
@@ -152,10 +151,11 @@ a:hover {
   display: none;
 }
 
-.leaflet-control-container .leaflet-bottom {
-  margin-bottom: 0 !important;
-}
 
+/* shift controls when chat is expanded */
+.leaflet-left .leaflet-control.chat-expand {
+  margin-left: 720px;
+}
 
 .help {
   cursor: help;
@@ -226,15 +226,13 @@ a:hover {
 #chatcontrols .toggle {
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
+  border-bottom: 10px solid #FFCE00;
   margin: 6px auto auto;
 }
 
-#chatcontrols .expand {
-  border-bottom: 10px solid #FFCE00;
-}
-
-#chatcontrols .shrink {
+#chatcontrols.expand .toggle {
   border-top: 10px solid #FFCE00;
+  border-bottom: none;
 }
 
 #chatcontrols .loading {
@@ -1267,7 +1265,7 @@ table.artifact .portal {
 
 /* prevent nonfunctional horizontal scrollbar in Chrome (perhaps jQuery issue) */
 .cellscore .historychart > div {
-  overflow: auto; 
+  overflow: auto;
 }
 
 .cellscore .logscale {

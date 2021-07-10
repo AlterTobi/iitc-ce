@@ -1,7 +1,7 @@
 // @author         fragger
 // @name           Zoom slider
 // @category       Controls
-// @version        0.2.0
+// @version        0.2.1
 // @description    Show a zoom slider on the map instead of the zoom buttons.
 
 
@@ -23,7 +23,7 @@ function setup () {
   loadLeafletZoomslider();
 
   var map = window.map;
-  if (map.zoomControl._map) {
+  if (map.zoomControl && map.zoomControl._map) {
     map.zoomControl.remove();
   }
   zoomSlider.control = L.control.zoomslider(zoomSlider.options).addTo(map);

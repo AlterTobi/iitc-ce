@@ -131,24 +131,24 @@ function createDefaultBaseMapLayers() {
   // Google Maps - including ingress default (using the stock-intel API-key)
   baseLayers['Google Default Ingress Map'] = L.gridLayer.googleMutant(
     { type:'roadmap',
-      maxZoom: 21,
       backgroundColor: '#0e3d4e',
       styles: [
           { featureType:"all", elementType:"all",
             stylers: [{visibility:"on"}, {hue:"#131c1c"}, {saturation:"-50"}, {invert_lightness:true}] },
           { featureType:"water", elementType:"all",
             stylers: [{visibility:"on"}, {hue:"#005eff"}, {invert_lightness:true}] },
-          { featureType:"poi", stylers:[{visibility:"off"}]},
-          { featureType:"transit", elementType:"all", stylers:[{visibility:"off"}] }
+          { featureType:"poi", stylers:[{visibility:"off"}] },
+          { featureType:"transit", elementType:"all", stylers:[{visibility:"off"}] },
+          { featureType:"road", elementType:"labels.icon", stylers:[{invert_lightness:!0}] }
         ],
     });
-  baseLayers['Google Roads'] = L.gridLayer.googleMutant({type:'roadmap', maxZoom: 21});
-  var trafficMutant = L.gridLayer.googleMutant({type:'roadmap', maxZoom: 21});
+  baseLayers['Google Roads'] = L.gridLayer.googleMutant({type:'roadmap'});
+  var trafficMutant = L.gridLayer.googleMutant({type:'roadmap'});
   trafficMutant.addGoogleLayer('TrafficLayer');
   baseLayers['Google Roads + Traffic'] = trafficMutant;
-  baseLayers['Google Satellite'] = L.gridLayer.googleMutant({type:'satellite', maxZoom: 21});
-  baseLayers['Google Hybrid'] = L.gridLayer.googleMutant({type:'hybrid', maxZoom: 21});
-  baseLayers['Google Terrain'] = L.gridLayer.googleMutant({type:'terrain', maxZoom: 21});
+  baseLayers['Google Satellite'] = L.gridLayer.googleMutant({type:'satellite'});
+  baseLayers['Google Hybrid'] = L.gridLayer.googleMutant({type:'hybrid'});
+  baseLayers['Google Terrain'] = L.gridLayer.googleMutant({type:'terrain'});
 
 
   return baseLayers;
@@ -418,12 +418,12 @@ window.setupSidebarToggle = function() {
     var toggle = $('#sidebartoggle');
     var sidebar = $('#scrollwrapper');
     if(sidebar.is(':visible')) {
-      sidebar.hide().css('z-index', 1);
+      sidebar.hide();
       $('.leaflet-right').css('margin-right','0');
       toggle.html('<span class="toggle open"></span>');
       toggle.css('right', '0');
     } else {
-      sidebar.css('z-index', 1001).show();
+      sidebar.show();
       window.resetScrollOnNewPortal();
       $('.leaflet-right').css('margin-right', SIDEBAR_WIDTH+1+'px');
       toggle.html('<span class="toggle close"></span>');
@@ -845,7 +845,7 @@ try {
     return module;
   }({})).exports(L);
 
-  '@include_raw:external/jquery-3.5.1.min.js@';
+  '@include_raw:external/jquery-3.6.0.min.js@';
   '@include_raw:external/jquery-ui-1.12.1.min.js@';
   '@include_raw:external/taphold.js@';
   '@include_raw:external/jquery.qrcode.min.js@';
@@ -855,4 +855,8 @@ try {
   throw e;
 }
 
-$(boot);
+if (document.readyState === 'complete') { // IITCm
+  setTimeout(boot);
+} else {
+  window.addEventListener('load', boot);
+}

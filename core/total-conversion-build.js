@@ -1,6 +1,6 @@
 // @author         jonatkins
 // @name           IITC: Ingress intel map total conversion
-// @version        0.31.1
+// @version        0.32.0
 // @description    Total conversion for the ingress intel map.
 // @run-at         document-end
 
@@ -59,7 +59,7 @@ document.body = document.createElement('body');
 document.body.innerHTML = ''
   + '<div id="map">Loading, please wait</div>'
   + '<div id="chatcontrols" style="display:none">'
-  + '<a accesskey="0" title="[0]"><span class="toggle expand"></span></a>'
+  + '<a accesskey="0" title="[0]"><span class="toggle"></span></a>'
   + '<a accesskey="1" title="[1]">all</a>'
   + '<a accesskey="2" title="[2]" class="active">faction</a>'
   + '<a accesskey="3" title="[3]">alerts</a>'
@@ -154,6 +154,8 @@ window.COMPLETION_BONUS = 250; //AP for deploying all resonators on portal
 window.UPGRADE_ANOTHERS_RESONATOR = 65; //AP for upgrading another's resonator
 window.MAX_PORTAL_LEVEL = 8;
 window.MAX_RESO_PER_PLAYER = [0, 8, 4, 4, 4, 2, 2, 1, 1];
+window.BASE_HACK_COOLDOWN = 300; // 5 mins - 300 seconds
+window.BASE_HACK_COUNT = 4;
 
 // OTHER MORE-OR-LESS CONSTANTS //////////////////////////////////////
 window.TEAM_NONE = 0;

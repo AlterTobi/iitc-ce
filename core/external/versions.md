@@ -1,8 +1,8 @@
 ### jQuery-related components:
 
 * https://jquery.com/
-  3.5.1
-  https://code.jquery.com/jquery-3.5.1.min.js
+  3.6.0
+  https://code.jquery.com/jquery-3.6.0.min.js
 
 * https://jqueryui.com/
   1.12.1
@@ -13,8 +13,7 @@
   used in: utils_misc.js (showPortalPosLinks)
 
 * https://github.com/IITC-CE/jquery-taphold
-  (originally forked from https://github.com/richadams/jquery-taphold, which is archived now)
-  taphold.js: 392d42e59b6494d6ec6a9fe3cc4ac3e43bf207dd
+  taphold.js: 5f069454d28c49a9b18228e75d5f18ec43e9a7e9
 
 
 ### Leaflet-related components:
@@ -24,8 +23,7 @@
   leaflet-src.js, leaflet.css, images/*
 
 * https://gitlab.com/IvanSanchez/Leaflet.GridLayer.GoogleMutant
-  0.8.0
-  Leaflet.GoogleMutant.js
+  v0.13.4
 
 * https://github.com/IITC-CE/Leaflet.Geodesic
   L.Geodesic.js: c9f84ab763e89fa172ed410037a67151ef56d06c

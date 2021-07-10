@@ -275,12 +275,6 @@ window.androidCopy = function(text) {
   return false;
 }
 
-window.getCurrentZoomTileParameters = function() {
-  var zoom = getDataZoomForMapZoom( map.getZoom() );
-  var tileParams = getMapZoomTileParameters(zoom);
-  return tileParams;
-}
-
 // returns number of pixels left to scroll down before reaching the
 // bottom. Works similar to the native scrollTop function.
 window.scrollBottom = function(elm) {
@@ -327,6 +321,14 @@ String.prototype.capitalize = function() {
 if (typeof String.prototype.startsWith !== 'function') {
   String.prototype.startsWith = function (str){
     return this.slice(0, str.length) === str;
+  };
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/trunc#polyfill
+// (required for KitKat support)
+if (!Math.trunc) {
+  Math.trunc = function (v) {
+    return v < 0 ? Math.ceil(v) : Math.floor(v);
   };
 }
 
@@ -483,7 +485,7 @@ window.makePermalink = function (latlng, options) {
   options = options || {};
 
   function round (l) { // ensures that lat,lng are with same precision as in stock intel permalinks
-    return Math.trunc(l*1e6)/1e6;
+    return Math.floor(l*1e6)/1e6;
   }
   var args = [];
   if (!latlng || options.includeMapView) {

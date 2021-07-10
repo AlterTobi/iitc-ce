@@ -179,7 +179,12 @@ window.chat.handleFaction = function(data, olderMsgs, ascendingTimestampOrder) {
     return log.warn('faction chat error. Waiting for next auto-refresh.');
   }
 
-  if(data.result.length === 0) return;
+  if (!data.result.length && !$('#chatfaction').data('needsClearing')) {
+    // no new data and current data in chat._faction.data is already rendered
+    return;
+  }
+
+  $('#chatfaction').data('needsClearing', null);
 
   var old = chat._faction.oldestGUID;
   chat.writeDataToHash(data, chat._faction, false, olderMsgs, ascendingTimestampOrder);
@@ -227,7 +232,12 @@ window.chat.handlePublic = function(data, olderMsgs, ascendingTimestampOrder) {
     return log.warn('public chat error. Waiting for next auto-refresh.');
   }
 
-  if(data.result.length === 0) return;
+  if (!data.result.length && !$('#chatall').data('needsClearing')) {
+    // no new data and current data in chat._public.data is already rendered
+    return;
+  }
+
+  $('#chatall').data('needsClearing', null);
 
   var old = chat._public.oldestGUID;
   chat.writeDataToHash(data, chat._public, undefined, olderMsgs, ascendingTimestampOrder);   //NOTE: isPublic passed as undefined - this is the 'all' channel, so not really public or private
@@ -323,8 +333,11 @@ window.chat.writeDataToHash = function(newData, storageHash, isPublicChannel, is
       guid: newData.result[newData.result.length-1][0],
       time: newData.result[newData.result.length-1][1]
     };
-    if (isAscendingOrder)
-      [first, last] = [last, first];
+    if (isAscendingOrder) {
+      var temp = first;
+      first = last;
+      last = temp;
+    }
     if (storageHash.oldestTimestamp === -1 || storageHash.oldestTimestamp >= last.time) {
       if (isOlderMsgs || storageHash.oldestTimestamp != last.time) {
         storageHash.oldestTimestamp = last.time;
@@ -521,19 +534,17 @@ window.chat.tabToChannel = function(tab) {
 window.chat.toggle = function() {
   var c = $('#chat, #chatcontrols');
   if(c.hasClass('expand')) {
-    $('#chatcontrols a:first').html('<span class="toggle expand"></span>');
     c.removeClass('expand');
     var div = $('#chat > div:visible');
     div.data('ignoreNextScroll', true);
     div.scrollTop(99999999); // scroll to bottom
-    $('.leaflet-control').css('margin-left', '13px');
+    $('.leaflet-control').removeClass('chat-expand');
   } else {
-    $('#chatcontrols a:first').html('<span class="toggle shrink"></span>');
     c.addClass('expand');
-    $('.leaflet-control').css('margin-left', '720px');
+    $('.leaflet-control').addClass('chat-expand');
     chat.needMoreMessages();
   }
-}
+};
 
 
 // called by plugins (or other things?) that need to monitor COMM data streams when the user is not viewing them

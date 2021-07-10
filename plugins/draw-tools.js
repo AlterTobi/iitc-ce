@@ -1,7 +1,7 @@
 // @author         breunigs
 // @name           Draw tools
 // @category       Draw
-// @version        0.8.0
+// @version        0.8.1
 // @description    Allow drawing things onto the current map so you may plan your next move. Supports Multi-Project-Extension.
 
 
@@ -527,8 +527,7 @@ window.plugin.drawTools.optReset = function() {
 }
 
 window.plugin.drawTools.snapToPortals = function() {
-  var dataParams = window.getCurrentZoomTileParameters();
-  if (dataParams.level > 0) {
+  if (!window.getDataZoomTileParameters().hasPortals) {
     if (!confirm('Not all portals are visible on the map. Snap to portals may move valid points to the wrong place. Continue?')) {
       return;
     }
@@ -584,8 +583,8 @@ window.plugin.drawTools.snapToPortals = function() {
       if (visibleBounds.contains(ll)) {
         testCount++;
         var newll = findClosestPortalLatLng(ll);
-        if (!newll.equals(ll)) {
-          layer.setLatLng(new L.LatLng(newll.lat,newll.lng));
+        if (newll.lat !== ll.lat || newll.lng !== ll.lng) { // must be strict
+          layer.setLatLng(new L.LatLng(newll.lat, newll.lng));
           changedCount++;
         }
       }
@@ -596,8 +595,8 @@ window.plugin.drawTools.snapToPortals = function() {
         if (visibleBounds.contains(lls[i])) {
           testCount++;
           var newll = findClosestPortalLatLng(lls[i]);
-          if (!newll.equals(lls[i])) {
-            lls[i] = new L.LatLng(newll.lat,newll.lng);
+          if (newll.lat !== lls[i].lat || newll.lng !== lls[i].lng) {
+            lls[i] = new L.LatLng(newll.lat, newll.lng);
             changedCount++;
             layerChanged = true;
           }
@@ -689,15 +688,7 @@ window.plugin.drawTools.boot = function() {
 // ---------------------------------------------------------------------------------
 // MPE - MULTI PROJECTS EXTENSION
 // ---------------------------------------------------------------------------------
-window.plugin.drawTools.mpe = {};
-window.plugin.drawTools.mpe.ui = {};
-
-window.plugin.drawTools.mpe.boot = function(){
-  window.plugin.drawTools.mpe.initMPE();
-};
-
-
-window.plugin.drawTools.mpe.initMPE = function(){
+window.plugin.drawTools.initMPE = function(){
   // Not launch the code if the MPE plugin there isn't.
   if(!window.plugin.mpe){ return; }
 
@@ -738,9 +729,9 @@ window.plugin.drawTools.mpe.initMPE = function(){
 }
 
 function setup () {
-  loadExternals();                              // initialize leaflet
-  window.plugin.drawTools.boot();               // initialize drawtools
-  window.plugin.drawTools.mpe.boot();           // register to MPE if available
+  loadExternals();
+  window.plugin.drawTools.boot();
+  window.plugin.drawTools.initMPE();
 }
 
 function loadExternals () {
