@@ -1,6 +1,6 @@
 // @author         jonatkins
 // @name           IITC: Ingress intel map total conversion
-// @version        0.32.0
+// @version        0.32.1
 // @description    Total conversion for the ingress intel map.
 // @run-at         document-end
 
@@ -93,7 +93,8 @@ document.body.innerHTML = ''
   + '</div>'
   + '<div id="updatestatus"><div id="innerstatus"></div></div>'
   // avoid error by stock JS
-  + '<div id="play_button"></div>';
+  + '<div id="play_button"></div>'
+  + '<div id="header"><div id="nav"></div></div>';
 
 // CONFIG OPTIONS ////////////////////////////////////////////////////
 window.REFRESH = 30; // refresh view every 30s (base time)

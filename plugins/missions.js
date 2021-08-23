@@ -1,7 +1,7 @@
 // @author         jonatkins
 // @name           Missions
 // @category       Info
-// @version        0.2.1
+// @version        0.2.2
 // @description    View missions. Marking progress on waypoints/missions basis. Showing mission paths on the map.
 
 
@@ -1058,8 +1058,9 @@ window.plugin.missions = {
 			window.plugin.sync.registerMapForSync('missions', 'checkedWaypoints', this.syncCallback.bind(this), this.syncInitialed.bind(this));
 		}
 
-		window.addHook('iitcLoaded', this.onIITCLoaded.bind(this));
+		setTimeout(this.onIITCLoaded.bind(this));
 	}
 };
 
 var setup = window.plugin.missions.setup.bind(window.plugin.missions);
+setup.priority = 'low';
