@@ -57,11 +57,6 @@ window.dialog = function(options) {
   var jqID = '#' + id;
   var html = '';
 
-  // hint for iitc mobile that a dialog was opened
-  if (typeof android !== 'undefined' && android && android.dialogOpened) {
-    android.dialogOpened(id, true);
-  }
-
   // Convert text to HTML if necessary
   if(options.text) {
     html = window.convertTextToTableMagic(options.text);
@@ -137,6 +132,9 @@ window.dialog = function(options) {
         collapse.click($.proxy(function() {
           var collapsed = ($(this).data('collapsed') === true);
 
+          // Toggle collapsed state
+          $(this).data('collapsed', !collapsed);
+
           // Run callbacks if we have them
           if($(this).data('collapseExpandCallback')) {
             $.proxy($(this).data('collapseExpandCallback'), this)(!collapsed);
@@ -150,12 +148,21 @@ window.dialog = function(options) {
 
           // Find the button pane and content dialog in this ui-dialog, and add or remove the 'hidden' class.
           var dialog   = $(this).closest('.ui-dialog');
-          var selector = dialog.find('.ui-dialog-content,.ui-dialog-buttonpane');
+          var content = dialog.find('.ui-dialog-content');
+          var buttonpane = dialog.find('.ui-dialog-buttonpane');
           var button   = dialog.find('.ui-dialog-titlebar-button-collapse');
 
           // Slide toggle
           $(this).css('height', '');
-          $(selector).slideToggle({duration: window.DIALOG_SLIDE_DURATION, complete: sizeFix});
+          $(content).slideToggle({
+            duration: window.DIALOG_SLIDE_DURATION,
+            complete: function () {
+              $(buttonpane).slideToggle({
+                duration: window.DIALOG_SLIDE_DURATION,
+                complete: sizeFix
+              });
+            }
+          });
 
           if(collapsed) {
             $(button).removeClass('ui-dialog-titlebar-button-collapse-collapsed');
@@ -164,9 +171,6 @@ window.dialog = function(options) {
             $(button).removeClass('ui-dialog-titlebar-button-collapse-expanded');
             $(button).addClass('ui-dialog-titlebar-button-collapse-collapsed');
           }
-
-          // Toggle collapsed state
-          $(this).data('collapsed', !collapsed);
         }, this));
 
         // Put it into the titlebar
@@ -195,10 +199,6 @@ window.dialog = function(options) {
 
       window.DIALOG_COUNT--;
       log.log('window.dialog: ' + $(this).data('id') + ' (' + $(this).dialog('option', 'title') + ') closed. ' + window.DIALOG_COUNT + ' remain.');
-      // hint for iitc mobile that a dialog was closed
-      if (typeof android !== 'undefined' && android && android.dialogOpened) {
-        android.dialogOpened(id, false);
-      }
 
       // remove from DOM and destroy
       $(this).dialog('destroy').remove();
@@ -221,10 +221,6 @@ window.dialog = function(options) {
 
       // This dialog is now in focus
       window.DIALOG_FOCUS = this;
-      // hint for iitc mobile that a dialog was focused
-      if (typeof android !== 'undefined' && android && android.dialogFocused) {
-        android.dialogFocused($(window.DIALOG_FOCUS).data('id'));
-      }
       $(this).closest('.ui-dialog').find('.ui-dialog-title').removeClass('ui-dialog-title-inactive').addClass('ui-dialog-title-active');
     }
   }, options));

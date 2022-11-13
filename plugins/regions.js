@@ -1,7 +1,7 @@
 // @author         jonatkins
 // @name           Ingress scoring regions
 // @category       Layer
-// @version        0.2.0
+// @version        0.2.1
 // @description    Show the regional scoring cells grid on the map
 
 
@@ -26,7 +26,7 @@ window.plugin.regions.setup  = function() {
           }")
   .appendTo("head");
 
-  addLayerGroup('Score Regions', window.plugin.regions.regionLayer, true);
+  window.layerChooser.addOverlay(window.plugin.regions.regionLayer, 'Score Regions');
 
   map.on('moveend', window.plugin.regions.update);
 

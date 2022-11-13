@@ -1,7 +1,7 @@
 // @author         jonatkins
 // @name           Done links
 // @category       Draw
-// @version        0.1.0
+// @version        0.1.1
 // @description    A companion to the Cross Links plugin. Highlights any links that match existing draw-tools line/polygon edges
 
 
@@ -125,7 +125,7 @@ window.plugin.doneLinks.testForDeletedLinks = function () {
 window.plugin.doneLinks.createLayer = function() {
     window.plugin.doneLinks.linkLayer = new L.FeatureGroup();
     window.plugin.doneLinks.linkLayerGuids={};
-    window.addLayerGroup('Done Links', window.plugin.doneLinks.linkLayer, true);
+    window.layerChooser.addOverlay(window.plugin.doneLinks.linkLayer, 'Done Links');
 
     map.on('layeradd', function(obj) {
       if(obj.layer === window.plugin.doneLinks.linkLayer) {

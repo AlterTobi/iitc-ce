@@ -1,7 +1,7 @@
 // @author         ZasoGD
 // @name           Multi Projects Extension
-// @category       Control
-// @version        0.0.7
+// @category       Controls
+// @version        0.1.1
 // @description    Create separated projects in some plugins.
 
 //
@@ -341,25 +341,34 @@ window.plugin.mpe.data.toggleManager = function(PJ){
   }
 }
 
-window.plugin.mpe.ui.toggleSidebar = function(PJ){
-  var s = '.mpeSidebar .mpe.'+PJ;
-  var elem = $(s);
-  var fa = window.plugin.mpe.data.getFaClass(PJ);
-  fa = (fa.length !== 0)? fa : 'nofa';
+window.plugin.mpe.ui.toggleSidebar = function (PJ) {
+  var entry = $('.mpeSidebar .mpe.' + PJ);
 
+  if (window.plugin.mpe.data.isInSidebar(PJ) === -1) {
+    entry.remove();
+  } else if (entry.length === 0) {
+    var icon = getProjectIcon(PJ);
+    var newEntry = $(window.plugin.mpe.getHTML.project(PJ));
+    newEntry.prepend(icon);
+    $('.mpeSidebar').append(newEntry);
+  }
+};
+
+function getProjectIcon(PJ) {
   var title = window.plugin.mpe.data.getTitle(PJ);
 
-  if(window.plugin.mpe.data.isInSidebar(PJ) >= 0){
-    if(!elem.length){
-      $('.mpeSidebar').append(window.plugin.mpe.getHTML.project(PJ));
-      $(s).prepend('<i class="left fa '+fa+'" title="'+title+'"></i>');
-    }
-  }else{
-    elem.remove();
+  if (window.plugin.faIcon) {
+    var fa = window.plugin.mpe.data.getFaClass(PJ);
+    fa = fa.length !== 0 ? fa : 'nofa';
+    return '<i class="left fa ' + fa + '" title="' + title + '"></i>';
+  } else {
+    var short = title ? title.substr(0, 3) : 'n/a';
+    return '<i class="left fa" title="' + title + '">' + short + '</i>';
   }
 }
-window.plugin.mpe.ui.toggleManager = function(PJ){
-  var elem = $('.mpeManager .mpe.'+PJ+'');
+
+window.plugin.mpe.ui.toggleManager = function (PJ) {
+  var elem = $('.mpeManager .mpe.' + PJ + '');
 
   var isHidden = window.plugin.mpe.data.isInManager(PJ);
   if(isHidden >= 0){
@@ -506,8 +515,6 @@ window.plugin.mpe.setupCSS = function(){
 
 
 var setup = function(){
-  window.pluginCreateHook('mpe');
-
   window.plugin.mpe.storage.checkStorage();
   window.plugin.mpe.setupCSS();
   window.plugin.mpe.ui.addControl();

@@ -1,7 +1,7 @@
 // @author         johnd0e
 // @name           Mini map
 // @category       Controls
-// @version        0.4.0
+// @version        0.4.1
 // @description    Show a mini map on the corner of the map.
 
 
@@ -44,7 +44,7 @@ function clone (layer) {
     return L.tileLayer(layer._url, options);
   } else if (L.GridLayer.GoogleMutant && layer instanceof L.GridLayer.GoogleMutant) {
     var gm = L.gridLayer.googleMutant(options);
-    layer._GAPIPromise.then(function () {
+    layer.whenReady(function () {
       for (var name in layer._subLayers) { gm.addGoogleLayer(name); }
     });
     return gm;
@@ -64,12 +64,6 @@ function clone (layer) {
 
 var map, layerChooser;
 
-function find (arr, callback) { // ES5 doesn't include Array.prototype.find()
-  for (var i=0; i<arr.length; i++) {
-    if (callback(arr[i], i, arr)) { return arr[i]; }
-  }
-}
-
 function getMapping (name) {
   if (name in miniMap.layers) {
     return miniMap.layers[name] || miniMap.layers.default;
@@ -87,7 +81,7 @@ function getLayer (e) {
   var layer = cache[e.name];
   if (!layer) {
     if (mapped) {
-      e = find(layerChooser._layers, function (el) {
+      e = layerChooser._layers.find(function (el) {
         return el.name === mapped;
       });
       if (!e) { return; }
@@ -115,7 +109,7 @@ function setup () {
 
   miniMap.layers.default = miniMap.layers.default || 'unset';
 
-  var baseLayer = find(layerChooser._layers, function (el) {
+  var baseLayer = layerChooser._layers.find(function (el) {
     return !el.overlay && map.hasLayer(el.layer);
   });
   var current = baseLayer ? getLayerSafe(baseLayer) : L.layerGroup();
@@ -132,8 +126,11 @@ function setup () {
 
   if (!miniMap.options.mapOptions.attributionControl) { // hide attribution
     $('<style>').html(
-      'div.gm-style .gmnoprint, div.gm-style img,'      // google
-    + 'ymaps[class$="-copyrights-pane"], ymaps iframe'  // yandex
+      'div.leaflet-control-minimap div.leaflet-bottom,'               // google
+    // + 'div.leaflet-control-minimap div.gm-style .gmnoprint,'       // google (old)
+    // + 'div.leaflet-control-minimap div.gm-style img,'
+    + 'div.leaflet-control-minimap ymaps[class$="-copyrights-pane"],' // yandex
+    + 'div.leaflet-control-minimap ymaps iframe'
     + '  { display: none }'
     ).appendTo('head');
   }

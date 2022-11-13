@@ -1,7 +1,7 @@
 // @author         xelio
 // @name           Keys on map
 // @category       Layer
-// @version        0.3.0
+// @version        0.3.1
 // @description    Show the manually entered key counts from the 'keys' plugin on the map.
 
 
@@ -100,7 +100,7 @@ window.plugin.keysOnMap.setupCSS = function() {
 
 window.plugin.keysOnMap.setupLayer = function() {
   window.plugin.keysOnMap.keyLayerGroup = new L.LayerGroup();
-  window.addLayerGroup('Keys', window.plugin.keysOnMap.keyLayerGroup, false);
+  window.layerChooser.addOverlay(window.plugin.keysOnMap.keyLayerGroup, 'Keys', {default: false});
 }
 
 var setup =  function() {

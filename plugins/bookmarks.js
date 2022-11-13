@@ -1,7 +1,7 @@
 // @author         ZasoGD
 // @name           Bookmarks for maps and portals
 // @category       Controls
-// @version        0.4.0
+// @version        0.4.2
 // @description    Save your favorite Maps and Portals and move the intel map with a click. Works with sync. Supports Multi-Project-Extension
 
 /* **********************************************************************
@@ -40,12 +40,6 @@
   window.plugin.bookmarks.starLayerGroup = null;
 
   window.plugin.bookmarks.isSmart = undefined;
-  window.plugin.bookmarks.isAndroid = function() {
-    if(typeof android !== 'undefined' && android) {
-      return true;
-    }
-    return false;
-  }
 
 /*********************************************************************************************************************/
 
@@ -642,8 +636,8 @@ window.plugin.bookmarks.loadStorageBox = function() {
   }
 
   window.plugin.bookmarks.optCopy = function() {
-    if(typeof android !== 'undefined' && android && android.shareString) {
-      return android.shareString(window.plugin.bookmarks.escapeUnicode(localStorage[window.plugin.bookmarks.KEY_STORAGE]));
+    if (window.isApp && app.shareString) {
+      return app.shareString(window.plugin.bookmarks.escapeUnicode(localStorage[window.plugin.bookmarks.KEY_STORAGE]));
     } else {
       dialog({
         html: '<p><a onclick="$(\'.ui-dialog-bkmrksSet-copy textarea\').select();">Select all</a> and press CTRL+C to copy it.</p><textarea readonly>'+window.plugin.bookmarks.escapeUnicode(localStorage[window.plugin.bookmarks.KEY_STORAGE])+'</textarea>',
@@ -707,7 +701,7 @@ window.plugin.bookmarks.loadStorageBox = function() {
   }
 
   window.plugin.bookmarks.optBox = function(command) {
-    if(!window.plugin.bookmarks.isAndroid()) {
+    if (!window.isApp) {
       switch(command) {
         case 'save':
           var boxX = parseInt($('#bookmarksBox').css('top'));
@@ -992,7 +986,8 @@ window.plugin.bookmarks.loadStorageBox = function() {
       if(fullUpdated) {
         window.plugin.bookmarks.refreshBkmrks();
         window.plugin.bookmarks.resetAllStars();
-        console.log('BOOKMARKS: synchronized all after offline');
+        window.runHooks('pluginBkmrksSyncEnd', {"target": "all", "action": "sync"});
+        console.log('BOOKMARKS: synchronized all from drive after offline');
         return;
       }
 
@@ -1000,6 +995,7 @@ window.plugin.bookmarks.loadStorageBox = function() {
       if(e.isLocal) {
         // Update pushed successfully, remove it from updatingQueue
         delete window.plugin.bookmarks.updatingQueue[e.property];
+        console.log('BOOKMARKS: synchronized to drive');
       } else {
         // Remote update
         delete window.plugin.bookmarks.updateQueue[e.property];
@@ -1136,10 +1132,6 @@ window.plugin.bookmarks.loadStorageBox = function() {
 
 /***************************************************************************************************************************************************************/
 
-  window.plugin.bookmarks.setupCSS = function() {
-    $('<style>').prop('type', 'text/css').html('@include_css:bookmarks.css@').appendTo('head');
-  }
-
   window.plugin.bookmarks.setupPortalsList = function() {
     function onBookmarkChanged(data) {
       console.log(data, data.target, data.guid);
@@ -1238,7 +1230,7 @@ window.plugin.bookmarks.loadStorageBox = function() {
     actions += '<a onclick="window.plugin.bookmarks.optExport();return false;">Export bookmarks</a>';
 
     actions += '<a onclick="window.plugin.bookmarks.optRenameF();return false;">Rename Folder</a>'
-    if(!plugin.bookmarks.isAndroid()) {
+    if (!window.isApp) {
       actions += '<a onclick="window.plugin.bookmarks.optBox(\'save\');return false;">Save box position</a>';
       actions += '<a onclick="window.plugin.bookmarks.optBox(\'reset\');return false;">Reset box position</a>';
     }
@@ -1319,8 +1311,8 @@ window.plugin.bookmarks.initMPE = function(){
       $('body').append(window.plugin.bookmarks.htmlBkmrksBox);
       $('#bookmarksBox').css("display", "none").addClass("mobile");
 
-      if(window.useAndroidPanes())
-        android.addPane("plugin-bookmarks", "Bookmarks", "ic_action_star");
+      if(window.useAppPanes())
+        app.addPane("plugin-bookmarks", "Bookmarks", "ic_action_star");
       window.addHook('paneChanged', window.plugin.bookmarks.onPaneChanged);
     }
     $('#toolbox').append(window.plugin.bookmarks.htmlCallSetBox+window.plugin.bookmarks.htmlCalldrawBox);
@@ -1350,8 +1342,8 @@ window.plugin.bookmarks.initMPE = function(){
     window.addPortalHighlighter('Bookmarked Portals', window.plugin.bookmarks.highlight);
 
     // Layer - Bookmarked portals
-    window.plugin.bookmarks.starLayerGroup = new L.LayerGroup();
-    window.addLayerGroup('Bookmarked Portals', window.plugin.bookmarks.starLayerGroup, false);
+    window.plugin.bookmarks.starLayerGroup = L.layerGroup();
+    window.layerChooser.addOverlay(window.plugin.bookmarks.starLayerGroup, 'Bookmarked Portals', {default: false});
     window.plugin.bookmarks.addAllStars();
     window.addHook('pluginBkmrksEdit', window.plugin.bookmarks.editStar);
     window.addHook('pluginBkmrksSyncEnd', window.plugin.bookmarks.resetAllStars);
@@ -1364,4 +1356,8 @@ window.plugin.bookmarks.initMPE = function(){
         window.plugin.bookmarks.initMPE();
     }
 
+  }
+// moved setupCSS to the end to improve readability of built script
+    window.plugin.bookmarks.setupCSS = function() {
+    $('<style>').prop('type', 'text/css').html('@include_css:bookmarks.css@').appendTo('head');
   }

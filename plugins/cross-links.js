@@ -1,7 +1,7 @@
 // @author         mcben
 // @name           Cross links
 // @category       Draw
-// @version        1.3.0
+// @version        1.3.1
 // @description    Checks for existing links that cross planned links. Requires draw-tools plugin.
 
 
@@ -221,7 +221,7 @@ window.plugin.crossLinks.testForDeletedLinks = function () {
 window.plugin.crossLinks.createLayer = function () {
   window.plugin.crossLinks.linkLayer = new L.FeatureGroup();
   window.plugin.crossLinks.linkLayerGuids = {};
-  window.addLayerGroup('Cross Links', window.plugin.crossLinks.linkLayer, true);
+  window.layerChooser.addOverlay(window.plugin.crossLinks.linkLayer, 'Cross Links');
 
   map.on('layeradd', function (obj) {
     if (obj.layer === window.plugin.crossLinks.linkLayer) {

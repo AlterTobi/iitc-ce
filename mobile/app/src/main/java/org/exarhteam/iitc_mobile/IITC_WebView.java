@@ -43,12 +43,14 @@ public class IITC_WebView extends WebView {
     private final String mDesktopUserAgent = "Mozilla/5.0 (X11; Linux x86_64; rv:17.0)" +
             " Gecko/20130810 Firefox/17.0 Iceweasel/17.0.8";
     private String mMobileUserAgent;
-            
+
 
     // init web view
     private void iitc_init(final Context c) {
         if (isInEditMode()) return;
         mIitc = (IITC_Mobile) c;
+        mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(mIitc);
+
         mSettings = getSettings();
         mSettings.setJavaScriptEnabled(true);
         mSettings.setDomStorageEnabled(true);
@@ -57,7 +59,10 @@ public class IITC_WebView extends WebView {
         mSettings.setAppCacheEnabled(true);
         mSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
         mSettings.setAppCachePath(getContext().getCacheDir().getAbsolutePath());
-        mSettings.setDatabasePath(getContext().getApplicationInfo().dataDir + "/databases/");
+        int zoom = Integer.parseInt(mSharedPrefs.getString("pref_webview_zoom", "-1"));
+        if (zoom != -1) {
+            mSettings.setTextZoom(zoom);
+        }
 
         // enable mixed content (http on https...needed for some map tiles) mode
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -72,18 +77,16 @@ public class IITC_WebView extends WebView {
             mJsInterface = new IITC_JSInterface(mIitc);
         }
 
-        addJavascriptInterface(mJsInterface, "android");
-        mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(mIitc);
+        addJavascriptInterface(mJsInterface, "app");
 
-        // Hack to work Google login page in old browser
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP &&
-                !mSharedPrefs.getBoolean("pref_fake_user_agent", false))
-            mSharedPrefs.edit().putBoolean("pref_fake_user_agent", true).apply();
-
-        final String original_ua = mSettings.getUserAgentString();
-        // remove ";wv " marker as Google blocks WebViews from using OAuth
         // https://developer.chrome.com/multidevice/user-agent#webview_user_agent
-        mMobileUserAgent = original_ua.replace("; wv", "");
+        final String original_ua = mSettings.getUserAgentString();
+        if (original_ua.contains("; wv")) {
+            // remove ";wv " marker as Google blocks WebViews from using OAuth
+            mMobileUserAgent = original_ua.replace("; wv", "");
+        } else { // KitKat and older
+            mMobileUserAgent = original_ua.replaceFirst("Version\\/\\d\\.\\d+ ", "");
+        }
         setUserAgent();
 
         mNavHider = new Runnable() {

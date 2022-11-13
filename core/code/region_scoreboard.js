@@ -1,4 +1,4 @@
-window.RegionScoreboard = (function() {
+window.RegionScoreboardSetup = (function() {
 
   var mainDialog;
   var regionScore;
@@ -11,7 +11,9 @@ window.RegionScoreboard = (function() {
     this.gameScore = serverResult.gameScore;
 
     this.median=[-1,-1,-1];
-    this.MAX_CYCLES = 35;
+    this.CP_COUNT = 35;
+    this.CP_DURATION = 5*60*60*1000;
+    this.CYCLE_DURATION = this.CP_DURATION * this.CP_COUNT;
 
     this.checkpoints = [];
 
@@ -118,13 +120,11 @@ window.RegionScoreboard = (function() {
     };
 
     this.getCycleEnd = function() {
-      return this.getCheckpointEnd(this.MAX_CYCLES);
+      return this.getCheckpointEnd(this.CP_COUNT);
     };
 
     this.getCheckpointEnd = function(cp) {
-      var end = new Date(this.cycleStartTime.getTime());
-      end.setHours(end.getHours() + cp*5);
-      return end;
+      return new Date(this.cycleStartTime.getTime() + this.CP_DURATION * cp);
     };
 
     for (var i=0; i<serverResult.scoreHistory.length; i++) {
@@ -132,9 +132,7 @@ window.RegionScoreboard = (function() {
       this.checkpoints[parseInt(h[0])] = [parseInt(h[1]), parseInt(h[2])];
     }
 
-    var now = new Date().getTime();
-    var CYCLE_TIME = 7*25*60*60*1000; //7 25 hour 'days' per cycle
-    this.cycleStartTime = new Date(Math.floor(now / CYCLE_TIME) * (CYCLE_TIME));
+    this.cycleStartTime = new Date(Math.floor(Date.now() / this.CYCLE_DURATION) * this.CYCLE_DURATION);
   }
 
 
@@ -160,7 +158,7 @@ window.RegionScoreboard = (function() {
 
   function showRegion(latE6,lngE6) {
     var text = 'Loading regional scores...';
-    if (window.useAndroidPanes()) {
+    if (window.useAppPanes()) {
       var style = 'position: absolute; top: 0; width: 100%; max-width: 412px';
       mainDialog = $('<div>',{style: style}).html(text).appendTo(document.body);
     } else {
@@ -198,7 +196,7 @@ window.RegionScoreboard = (function() {
     mainDialog.html(
       '<div class="cellscore">' +
         '<b>Region scores for ' + regionScore.regionName + '</b>' +
-        '<div class="historychart">' + createResults() + RegionScoreboard.HistoryChart.create(regionScore, logscale) + '</div>' +
+        '<div class="historychart">' + createResults() + HistoryChart(regionScore, logscale) + '</div>' +
         '<b>Checkpoint overview</b><div>' + createHistoryTable() + '</div>' +
         '<b>Top agents</b><div>' + createAgentTable() + '</div>' +
       '</div>' +
@@ -347,8 +345,8 @@ window.RegionScoreboard = (function() {
 
   function createResultTooltip() {
 
-    var e_res = regionScore.getAvgScoreAtCP(TEAM_RES,regionScore.MAX_CYCLES);
-    var e_enl = regionScore.getAvgScoreAtCP(TEAM_ENL,regionScore.MAX_CYCLES);
+    var e_res = regionScore.getAvgScoreAtCP(TEAM_RES,regionScore.CP_COUNT);
+    var e_enl = regionScore.getAvgScoreAtCP(TEAM_ENL,regionScore.CP_COUNT);
     var loosing_faction = e_res<e_enl ? TEAM_RES : TEAM_ENL;
 
     var order = (loosing_faction === TEAM_ENL ? [TEAM_RES,TEAM_ENL]:[TEAM_ENL,TEAM_RES]);
@@ -377,7 +375,7 @@ window.RegionScoreboard = (function() {
       var total = e_res + e_enl;
       for (var t=0; t<2; t++) {
         var faction = order[t];
-        var score = regionScore.getAvgScoreAtCP(faction,regionScore.MAX_CYCLES);
+        var score = regionScore.getAvgScoreAtCP(faction,regionScore.CP_COUNT);
         res += window.TEAM_NAMES[faction] + '\t' +
             digits(score) + '\t' +
             percentToString(score,total) + '\n';
@@ -388,10 +386,10 @@ window.RegionScoreboard = (function() {
 
     function requiredScore() {
       var res='';
-      var required_mu = Math.abs(e_res-e_enl) * regionScore.MAX_CYCLES + 1;
+      var required_mu = Math.abs(e_res-e_enl) * regionScore.CP_COUNT + 1;
       res += '<hr>\n';
       res += window.TEAM_NAMES[loosing_faction] + ' requires:\t' + digits(Math.ceil(required_mu)) + ' \n';
-      res += 'Checkpoint(s) left:\t' + (regionScore.MAX_CYCLES-regionScore.getLastCP()) + ' \n';
+      res += 'Checkpoint(s) left:\t' + (regionScore.CP_COUNT-regionScore.getLastCP()) + ' \n';
 
       return res;
     }
@@ -451,9 +449,9 @@ window.RegionScoreboard = (function() {
     return ('0' + time.getDate()).slice(-2) + '.' + ('0' + (time.getMonth() + 1)).slice(-2) + ' ' + ('0' + time.getHours()).slice(-2) + ':00';
   }
 
-  function setup() {
-    if (window.useAndroidPanes()) {
-      android.addPane('regionScoreboard', 'Region scores', 'ic_action_view_as_list');
+  return function setup() {
+    if (window.useAppPanes()) {
+      app.addPane('regionScoreboard', 'Region scores', 'ic_action_view_as_list');
       addHook('paneChanged', function (pane) {
         if (pane === 'regionScoreboard') {
           showDialog();
@@ -464,21 +462,18 @@ window.RegionScoreboard = (function() {
     } else {
       $('<a>')
         .html('Region scores')
-        .attr('title','View regional scoreboard')
+        .attr({
+          id: 'scoreboard',
+          title: 'View regional scoreboard'
+        })
         .click(showDialog)
         .appendTo('#toolbox');
     }
   }
-
-  return {
-    setup: setup,
-    showDialog: showDialog
-  };
-
 }());
 
 
-RegionScoreboard.HistoryChart = (function() {
+var HistoryChart = (function() {
   var regionScore;
   var scaleFct;
   var logscale;
@@ -542,7 +537,7 @@ RegionScoreboard.HistoryChart = (function() {
     var col1 = getFactionColor(0);
     var col2 = getFactionColor(1);
 
-    for (var cp=1; cp<=regionScore.MAX_CYCLES; cp++) {
+    for (var cp=1; cp<=regionScore.CP_COUNT; cp++) {
       var scores = regionScore.getCPScore(cp);
 
       markers +=
@@ -621,7 +616,7 @@ RegionScoreboard.HistoryChart = (function() {
       var col = COLORS[faction];
 
       var points=[];
-      for (var cp=1; cp<=regionScore.MAX_CYCLES; cp++) {
+      for (var cp=1; cp<=regionScore.CP_COUNT; cp++) {
         var score = regionScore.getAvgScoreAtCP(faction, cp);
 
         var x = cp * 10 + 40;
@@ -660,8 +655,5 @@ RegionScoreboard.HistoryChart = (function() {
           num);
   }
 
-  return {
-    create: create
-  };
-
+  return create;
 }());

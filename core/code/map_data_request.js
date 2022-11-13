@@ -60,7 +60,7 @@ window.MapDataRequest = function() {
   this.RENDER_BATCH_SIZE = window.map.options.preferCanvas ? 1E9 : 1500;
 
   // delay before repeating the render loop. this gives a better chance for user interaction
-  this.RENDER_PAUSE = (typeof android === 'undefined') ? 0.1 : 0.2; //100ms desktop, 200ms mobile
+  this.RENDER_PAUSE = window.isApp ? 0.2 : 0.1; // 200ms mobile, 100ms desktop
 
 
   this.REFRESH_CLOSE = 300;  // refresh time to use for close views z>12 when not idle and not moving
@@ -241,11 +241,10 @@ window.MapDataRequest.prototype.refresh = function() {
 
   this.render.startRenderPass(tileParams.level, dataBounds);
 
-  var _render = this.render;
-  window.runHooks ('mapDataEntityInject', {callback: function(ents) { _render.processGameEntities(ents);}});
+  window.runHooks ('mapDataEntityInject', {callback: this.render.processGameEntities.bind(this.render)});
 
 
-  this.render.processGameEntities(artifact.getArtifactEntities());
+  this.render.processGameEntities(artifact.getArtifactEntities(), 'summary');
 
   var logMessage = 'requesting data tiles at zoom '+dataZoom;
   logMessage += ' (L'+tileParams.level+'+ portals';
@@ -701,7 +700,7 @@ window.MapDataRequest.prototype.processRenderQueue = function() {
     if (drawEntityLimit > 0 && current.entities.length > 0) {
       var drawThisPass = current.entities.splice(0,drawEntityLimit);
       drawEntityLimit -= drawThisPass.length;
-      this.render.processGameEntities(drawThisPass);
+      this.render.processGameEntities(drawThisPass, 'extended');
     }
 
     if (current.deleted.length == 0 && current.entities.length == 0) {

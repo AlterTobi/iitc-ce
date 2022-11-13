@@ -1,0 +1,20 @@
+{
+  "name": "iitc-ce",
+  "description": "Ingress Intel Total Conversion (Community Edition)",
+  "homepage": "https://iitc.app/",
+  "repository": "https://github.com/IITC-CE/ingress-intel-total-conversion.git",
+  "license": "ISC",
+  "private": true,
+  "devDependencies": {
+    "eslint": "^8.20.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.7.1"
+  },
+  "scripts": {
+    "build": "npm run build:local",
+    "build:local": "./build.py local",
+    "build:mobile": "./build.py mobile",
+    "fileserver": "./web_server_local.py local"
+  }
+}

@@ -18,7 +18,8 @@
 // portalSelected: called when portal on map is selected/unselected.
 //              Provide guid of selected and unselected portal.
 // mapDataRefreshStart: called when we start refreshing map data
-// mapDataEntityInject: called just as we start to render data. has callback to inject cached entities into the map render
+// mapDataEntityInject: called just as we start to render data. has callback to
+//                      Sinject cached entities into the map render
 // mapDataRefreshEnd: called when we complete the map data load
 // portalAdded: called when a portal has been received and is about to
 //              be added to its layer group. Note that this does NOT
@@ -45,6 +46,11 @@
 //              displayed. The data hash contains both the unprocessed
 //              raw ajax response as well as the processed chat data
 //              that is going to be used for display.
+// alertsChatDataAvailable: this hook runs after data for the alerts
+//              chat has been received and processed, but not yet been
+//              displayed. The data hash contains both the unprocessed
+//              raw ajax response as well as the processed chat data
+//              that is going to be used for display.
 // requestFinished: DEPRECATED: best to use mapDataRefreshEnd instead
 //              called after each map data request finished. Argument is
 //              {success: boolean} indicated the request success or fail.
@@ -61,24 +67,31 @@
 // geoSearch:
 // search:
 
-window._hooks = {}
+window._hooks = {};
 window.VALID_HOOKS = []; // stub for compatibility
 
+var isRunning = 0;
 window.runHooks = function(event, data) {
-  if(!_hooks[event]) return true;
+  if (!_hooks[event]) { return true; }
   var interrupted = false;
-  $.each(_hooks[event], function(ind, callback) {
+  isRunning++;
+  $.each(_hooks[event], function (ind, callback) {
     try {
       if (callback(data) === false) {
         interrupted = true;
-        return false;  //break from $.each
+        return false; // break from $.each
       }
     } catch (e) {
-      log.error('error running hook '+event+', error: '+e);
+      log.error('error running hook ' + event,
+        '\n' + e,
+        '\ncallback: ', callback,
+        '\ndata: ', data
+      );
     }
   });
+  isRunning--;
   return !interrupted;
-}
+};
 
 window.pluginCreateHook = function() {}; // stub for compatibility
 
@@ -87,11 +100,12 @@ window.addHook = function(event, callback) {
     throw new Error('Callback must be a function.');
   }
 
-  if(!_hooks[event])
+  if (!_hooks[event]) {
     _hooks[event] = [callback];
-  else
+  } else {
     _hooks[event].push(callback);
-}
+  }
+};
 
 // callback must the SAME function to be unregistered.
 window.removeHook = function(event, callback) {
@@ -99,11 +113,17 @@ window.removeHook = function(event, callback) {
     throw new Error('Callback must be a function.');
   }
 
-  if (_hooks[event]) {
-    var index = _hooks[event].indexOf(callback);
-    if(index == -1)
-      log.warn('Callback wasn\'t registered for this event.');
-    else
-      _hooks[event].splice(index, 1);
+  var listeners = _hooks[event];
+  if (listeners) {
+    var index = listeners.indexOf(callback);
+    if (index === -1) {
+      log.warn("Callback wasn't registered for this event.");
+    } else {
+      if (isRunning) {
+        listeners[index] = $.noop;
+        _hooks[event] = listeners = listeners.slice();
+      }
+      listeners.splice(index, 1);
+    }
   }
-}
+};
