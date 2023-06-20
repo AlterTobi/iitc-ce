@@ -1,6 +1,6 @@
 // @author         jonatkins
 // @name           IITC: Ingress intel map total conversion
-// @version        0.34.0
+// @version        0.35.1
 // @description    Total conversion for the ingress intel map.
 // @run-at         document-end
 
@@ -133,6 +133,7 @@ window.NOMINATIM = '//nominatim.openstreetmap.org/search?format=json&polygon_geo
 // http://decodeingress.me/2012/11/18/ingress-portal-levels-and-link-range/
 window.RESO_NRG = [0, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 6000];
 window.HACK_RANGE = 40; // in meters, max. distance from portal to be able to access it
+window.LINK_RANGE_MAC = [0, 0, 500, 750, 1000, 1500, 2000, 3000, 5000, 5000]; // in meters
 window.OCTANTS = ['E', 'NE', 'N', 'NW', 'W', 'SW', 'S', 'SE'];
 window.OCTANTS_ARROW = ['→', '↗', '↑', '↖', '←', '↙', '↓', '↘'];
 window.DESTROY_RESONATOR = 75; //AP for destroying portal
@@ -153,7 +154,7 @@ window.TEAM_RES = 1;
 window.TEAM_ENL = 2;
 window.TEAM_MAC = 3;
 window.TEAM_TO_CSS = ['none', 'res', 'enl', 'mac'];
-window.TEAM_NAMES = ['Neutral', 'Resistance', 'Enlightened', 'U̶͚̓̍N̴̖̈K̠͔̍͑̂͜N̞̥͋̀̉Ȯ̶̹͕̀W̶̢͚͑̚͝Ṉ̨̟̒̅'];
+window.TEAM_NAMES = ['Neutral', 'Resistance', 'Enlightened', '__MACHINA__'];
 window.TEAM_CODES = ['N', 'R', 'E', 'M'];
 window.TEAM_CODENAMES = ['NEUTRAL', 'RESISTANCE', 'ENLIGHTENED', 'MACHINA'];
 

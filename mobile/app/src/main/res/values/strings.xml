@@ -110,6 +110,8 @@
     <string name="pref_fake_user_agent">Fake User Agent</string>
     <string name="pref_fake_user_agent_sum">Let IITCm appear as a desktop browser for the intel site.
         Note: If just want to use the desktop mode use the \'force desktop mode\' setting</string>
+    <string name="pref_popup">Enable web popup</string>
+    <string name="pref_popup_sum">Allow plugins to use popups in the main webview. It can be useful for plugins that rely on third-party authentication</string>
     <string name="pref_android_menu">Configure IITCm menu</string>
     <string name="pref_android_menu_sum">Toggle visibility of IITCm menu entries</string>
     <string name="pref_update_plugins_cat">User plugin updates</string>
@@ -144,6 +146,7 @@
     <string name="menu_debug">Debug</string>
     <string name="menu_send_screenshot">Send screenshot</string>
     <string name="menu_plugins_add">Add external plugins</string>
+    <string name="menu_plugins_add_url">Add plugins by URL</string>
     <string name="menu_copy">Copy</string>
     <string name="menu_delete">Delete</string>
     <string name="choose_account_to_login">Choose account to login</string>
@@ -219,6 +222,10 @@
     <string name="pane_alerts">Alerts</string>
     <string name="pane_info">Info</string>
     <string name="pane_map">Map</string>
+    <string name="update_notifications_channel_name">Update notifications</string>
+    <string name="update_notifications_title">"New IITC Mobile version available"</string>
+    <string name="update_notifications_text">A new version %1$s is available. Tap to download.</string>
+    <string name="update_notifications_action_hide_forever">Hide forever</string>
     <string name="cradle_url" translatable="false">https://github.com/leCradle</string>
     <string name="fkloft_url" translatable="false">https://github.com/fkloft</string>
     <string name="giuseppe_lucido_url" translatable="false">http://be.net/giuseppelucido</string>

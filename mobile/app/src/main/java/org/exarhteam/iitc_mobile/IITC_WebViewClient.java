@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.net.http.SslError;
+import android.os.Build;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.webkit.HttpAuthHandler;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebResourceResponse;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
@@ -37,11 +39,13 @@ public class IITC_WebViewClient extends WebViewClient {
     private boolean mIitcInjected = false;
     private final String mIitcPath;
     private final IITC_TileManager mTileManager;
+    private final SharedPreferences mSharedPrefs;
 
     public IITC_WebViewClient(final IITC_Mobile iitc) {
         mIitc = iitc;
         mTileManager = new IITC_TileManager(mIitc);
         mIitcPath = Environment.getExternalStorageDirectory().getPath() + "/IITC_Mobile/";
+        mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(mIitc);
     }
 
     @SuppressLint("InflateParams")
@@ -87,8 +91,7 @@ public class IITC_WebViewClient extends WebViewClient {
         final List<String> scripts = new LinkedList<String>();
 
         // get the plugin preferences
-        final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(mIitc);
-        final TreeMap<String, ?> all_prefs = new TreeMap<String, Object>(sharedPref.getAll());
+        final TreeMap<String, ?> all_prefs = new TreeMap<String, Object>(mSharedPrefs.getAll());
 
         // iterate through all plugins
         for (final Map.Entry<String, ?> entry : all_prefs.entrySet()) {
@@ -103,7 +106,7 @@ public class IITC_WebViewClient extends WebViewClient {
         }
 
         // inject the user location script if enabled in settings
-        if (Integer.parseInt(sharedPref.getString("pref_user_location_mode", "0")) != 0) {
+        if (Integer.parseInt(mSharedPrefs.getString("pref_user_location_mode", "0")) != 0) {
             scripts.add("script" + DOMAIN + "/user-location.user.js");
         }
 
@@ -119,8 +122,9 @@ public class IITC_WebViewClient extends WebViewClient {
 
     @Override
     public void onPageFinished(final WebView view, final String url) {
-        if(url.startsWith("https://intel.ingress.com")) {
-            if (mIitcInjected) return;
+        if (url.startsWith("https://intel.ingress.com")) {
+            if (mIitcInjected)
+                return;
             Log.d("injecting iitc..");
             loadScripts((IITC_WebView) view);
             mIitcInjected = true;
@@ -265,39 +269,73 @@ public class IITC_WebViewClient extends WebViewClient {
         return super.shouldInterceptRequest(view, url);
     }
 
+    public boolean setUserAgentForUrl(final WebView view, final String url) {
+        final Uri uri = Uri.parse(url);
+        final String uriHost = uri.getHost();
+
+        final String currentUA = view.getSettings().getUserAgentString();
+        final String targetUA = mIitc.getUserAgentForHostname(uriHost);
+        if (targetUA == null || currentUA.equals(targetUA))
+            return false;
+        view.getSettings().setUserAgentString(targetUA);
+        Log.d("change UA for url `" + uriHost + "` to: `" + targetUA + "`");
+        return true;
+    }
+
+    private boolean reloadWithUserAgent(final WebView view, final String url) {
+        if (!setUserAgentForUrl(view, url)) return false;
+
+        final Uri uri = Uri.parse(url);
+        final String uriHost = uri.getHost();
+
+        if (uriHost.equals("intel.ingress.com")) {
+            mIitc.reset();
+            mIitc.setLoadingState(true);
+        }
+        view.loadUrl(url);
+        return true;
+    }
+
     // start non-ingress-intel-urls in another app...
     @Override
     public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
         final Uri uri = Uri.parse(url);
-        final String uriHost = uri.getHost();
-        final String uriPath = uri.getPath();
-        final String uriQuery = uri.getQueryParameter("q");
-        if (uriHost.equals("intel.ingress.com")) {
-            Log.d("intel link requested, reset app and load " + url);
-            mIitc.reset();
-            mIitc.setLoadingState(true);
-            return false;
+        if (uri.isHierarchical() && mIitc.isAllowedHostname(uri.getHost())) {
+            if (reloadWithUserAgent(view, url))
+                return true;
+
+            final String uriHost = uri.getHost();
+            final String uriPath = uri.getPath();
+            final String uriQuery = uri.getQueryParameter("q");
+            if (uriHost.equals("intel.ingress.com")) {
+                Log.d("intel link requested, reset app and load " + url);
+                mIitc.reset();
+                mIitc.setLoadingState(true);
+                return false;
+            }
+            if ((uriHost.startsWith("google.") || uriHost.contains(".google."))
+                    && uriPath.equals("/url") && uriQuery != null) {
+                Log.d("redirect to: " + uriQuery);
+                return shouldOverrideUrlLoading(view, uriQuery);
+            }
+            if (uriHost.endsWith("facebook.com")
+                    && (uriPath.contains("oauth") || uriPath.equals("/login.php") || uriPath.equals("/checkpoint/")
+                    || uriPath.equals("/cookie/consent_prompt/"))) {
+                Log.d("Facebook login");
+                return false;
+            }
+            if (uriHost.startsWith("accounts.google.") ||
+                    uriHost.startsWith("appengine.google.") ||
+                    uriHost.startsWith("accounts.youtube.")) {
+                Log.d("Google login");
+                return false;
+            }
+            if (mIitc.isInternalHostname(uriHost)) {
+                Log.d("internal host");
+                return false;
+            }
         }
-        if ((uriHost.startsWith("google.") || uriHost.contains(".google."))
-                && uriPath.equals("/url") && uriQuery != null) {
-            Log.d("redirect to: " + uriQuery);
-            return shouldOverrideUrlLoading(view, uriQuery);
-        }
-        if (uriHost.endsWith("facebook.com")
-                && (uriPath.contains("oauth") || uriPath.equals("/login.php") || uriPath.equals("/checkpoint/"))) {
-            Log.d("Facebook login");
-            return false;
-        }
-        if (uriHost.startsWith("accounts.google.") ||
-                 uriHost.startsWith("appengine.google.") ||
-                 uriHost.startsWith("accounts.youtube.")) {
-            Log.d("Google login");
-            return false;
-        }
-        if (mIitc.isInternalHostname(uriHost)) {
-            Log.d("internal host");
-            return false;
-        }
+
         Log.d("no ingress intel link, start external app to load url: " + url);
         final Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         // make new activity independent from iitcm
