@@ -1,9 +1,17 @@
 // @author         breunigs
 // @name           Player activity tracker
 // @category       Layer
-// @version        0.12.1
+// @version        0.12.2
 // @description    Draw trails for the path a user took onto the map based on status messages in COMMs. Uses up to three hours of data. Does not request chat data on its own, even if that would be useful.
 
+/* exported setup, changelog --eslint */
+
+var changelog = [
+  {
+    version: '0.12.2',
+    changes: ['🐛 - Exclude __MACHINA__ actions'],
+  },
+];
 
 window.PLAYER_TRACKER_MAX_TIME = 3*60*60*1000; // in milliseconds
 window.PLAYER_TRACKER_MIN_ZOOM = 9;
@@ -57,7 +65,7 @@ window.plugin.playerTracker.setup = function() {
     window.plugin.playerTracker.zoomListener();
   });
   window.plugin.playerTracker.zoomListener();
-  
+
   plugin.playerTracker.setupUserSearch();
 }
 
@@ -169,7 +177,9 @@ window.plugin.playerTracker.processNewData = function(data) {
     });
 
     // skip unusable events
-    if(!plrname || !lat || !lng || !id || skipThisMessage) return true;
+    if (!plrname || !lat || !lng || !id || skipThisMessage || ![window.TEAM_RES, window.TEAM_ENL].includes(window.teamStringToId(json[2].plext.team))) {
+      return true;
+    }
 
     var newEvent = {
       latlngs: [[lat, lng]],

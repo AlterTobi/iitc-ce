@@ -74,8 +74,15 @@ def fill_meta(source, plugin_name, dist_path):
         append_line('downloadURL', path + '.user.js')
 
     if keys.isdisjoint({'match', 'include'}):
+        if isinstance(settings.match, str):
+            settings.match = [settings.match]
         for m in settings.match:
             append_line('match', m)
+
+    if settings.url_icon_base:
+        append_line('icon', settings.url_icon_base.format(plugin_name))
+    if settings.url_icon_64_base:
+        append_line('icon64', settings.url_icon_64_base.format(plugin_name))
 
     append_line('grant', 'none')
     meta.append('// ==/UserScript==\n')
