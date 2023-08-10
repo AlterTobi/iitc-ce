@@ -1,6 +1,6 @@
 // @author         jonatkins
 // @name           IITC: Ingress intel map total conversion
-// @version        0.36.0
+// @version        0.36.1
 // @description    Total conversion for the ingress intel map.
 // @run-at         document-end
 
@@ -8,8 +8,19 @@
 window.script_info = plugin_info;
 window.script_info.changelog = [
   {
+    version: '0.36.1',
+    changes: ['Revert sorted sidebar links'],
+  },
+  {
     version: '0.36.0',
-    changes: ['Ability to define and display changelog'],
+    changes: [
+      'Ability to define and display changelog',
+      'Improved info panel styling',
+      'Timestamp added to link and field data',
+      'Added scanner link to info panel',
+      'Sorted sidebar links',
+      'Added window.formatDistance function for global use, which was previously in the bookmarks plugin',
+    ],
   },
 ];
 
