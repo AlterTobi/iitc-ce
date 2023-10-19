@@ -83,6 +83,12 @@
     <PreferenceCategory
         android:key="pref_mics"
         android:title="@string/pref_misc_cat">
+        <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="pref_check_for_updates"
+                android:title="@string/pref_check_for_updates"
+                android:summary="@string/pref_check_for_updates_summary"
+            />
         <PreferenceScreen
             android:key="pref_developer_screen"
             android:persistent="false"
@@ -139,7 +145,7 @@
                     android:summary="@string/pref_fake_user_agent_sum"
                     android:title="@string/pref_fake_user_agent"/>
                 <CheckBoxPreference
-                    android:defaultValue="false"
+                    android:defaultValue="true"
                     android:key="pref_popup"
                     android:summary="@string/pref_popup_sum"
                     android:title="@string/pref_popup"/>
@@ -159,6 +165,10 @@
                 android:key="pref_about"
                 android:title="@string/pref_about_title"/>
         </PreferenceScreen>
+        <org.exarhteam.iitc_mobile.prefs.ShareDebugInfoPreference
+                android:key="pref_debug_info"
+                android:title="@string/pref_debug_info"
+                android:summary="@string/pref_debug_info_sum"/>
     </PreferenceCategory>
 
 </PreferenceScreen>

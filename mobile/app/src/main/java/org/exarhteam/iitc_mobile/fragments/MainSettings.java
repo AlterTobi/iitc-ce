@@ -6,20 +6,19 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
-import android.preference.ListPreference;
-import android.preference.Preference;
-import android.preference.PreferenceFragment;
-import android.preference.PreferenceScreen;
+import android.preference.*;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
+import org.exarhteam.iitc_mobile.BuildConfig;
 import org.exarhteam.iitc_mobile.IntroActivity;
 import org.exarhteam.iitc_mobile.Log;
 import org.exarhteam.iitc_mobile.R;
 import org.exarhteam.iitc_mobile.prefs.AboutDialogPreference;
+import org.exarhteam.iitc_mobile.prefs.ShareDebugInfoPreference;
 
 public class MainSettings extends PreferenceFragment {
     @Override
@@ -30,6 +29,8 @@ public class MainSettings extends PreferenceFragment {
 
         // set versions
         final String iitcVersion = getArguments().getString("iitc_version");
+        final String originalUserAgent = getArguments().getString("iitc_originalUserAgent");
+        final String userAgent = getArguments().getString("iitc_userAgent");
 
         String buildVersion = "unknown";
 
@@ -55,6 +56,10 @@ public class MainSettings extends PreferenceFragment {
             return true;
         });
 
+        final ShareDebugInfoPreference prefShareDebug = (ShareDebugInfoPreference) findPreference("pref_debug_info");
+        prefShareDebug.setVersions(iitcVersion, buildVersion);
+        prefShareDebug.setUserAgents(originalUserAgent, userAgent);
+
         final AboutDialogPreference pref_about = (AboutDialogPreference) findPreference("pref_about");
         pref_about.setVersions(iitcVersion, buildVersion);
 
@@ -68,6 +73,12 @@ public class MainSettings extends PreferenceFragment {
         final String value = getPreferenceManager().getSharedPreferences().getString("pref_user_location_mode", "0");
         final int mode = Integer.parseInt(value);
         pref_user_location_mode.setSummary(getResources().getStringArray(R.array.pref_user_location_titles)[mode]);
+
+        if (!BuildConfig.ENABLE_CHECK_APP_UPDATES) {
+            Preference updateCheckPref = findPreference("pref_check_for_updates");
+            PreferenceCategory mCategory = (PreferenceCategory) findPreference("pref_mics");
+            mCategory.removePreference(updateCheckPref);
+        }
     }
 
     // we want a home button + HomeAsUpEnabled in nested preferences
