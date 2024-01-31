@@ -1,9 +1,15 @@
-Ingress Intel Total Conversion (IITC)
-=====================================
+<div align="center">
+
+  <img src="https://raw.githubusercontent.com/IITC-CE/ingress-intel-total-conversion/master/assets/IITC_circle.svg" alt="iitc logo" width="150px" />
+
+# Ingress Intel Total Conversion (IITC)
+
+---
 
 <!-- [START badges] -->
 [![Build Status](https://github.com/IITC-CE/ingress-intel-total-conversion/actions/workflows/build.yml/badge.svg)](https://github.com/IITC-CE/ingress-intel-total-conversion/actions/workflows/build.yml)
-[![Docs Status](https://readthedocs.org/projects/iitc-ce/badge/?version=latest)](https://readthedocs.org/projects/iitc-ce/)
+[![Release](https://img.shields.io/github/v/release/IITC-CE/ingress-intel-total-conversion)](https://github.com/IITC-CE/ingress-intel-total-conversion/releases)
+[![Commits since](https://img.shields.io/github/commits-since/IITC-CE/ingress-intel-total-conversion/latest)](https://github.com/IITC-CE/ingress-intel-total-conversion/commits/master/)
 [![LICENSE](https://img.shields.io/badge/license-ISC-blue.svg)](LICENSE)
 <!-- [END badges] -->
 
@@ -13,29 +19,31 @@ It is available for desktop browsers, such as Firefox and Chrome, and as a mobil
 
 **IITC "Community Edition"** (**_IITC-CE_**) started by [modos189](https://github.com/modos189) to continue development of stalled [iitc-project](https://github.com/iitc-project/ingress-intel-total-conversion).
 
-**[Website](https://iitc.app/) | [Documentation](https://iitc-ce.rtfd.io/) | [Telegram channel](https://t.me/iitc_news)**
+**[Website](https://iitc.app/) | [API Documentation](https://iitc-ce.github.io/ingress-intel-total-conversion/) | [Wiki](https://github.com/IITC-CE/ingress-intel-total-conversion/wiki) | [Telegram channel](https://t.me/iitc_news)**
+</div>
 
+---
 
 ## Users
 
 Install IITC: https://iitc.app/
 
-Latest news, release announcements, etc:
-- https://www.reddit.com/r/IITC/
-- https://t.me/iitc_news
+- Latest news, release announcements, etc:
+  - https://www.reddit.com/r/IITC/
+  - https://t.me/iitc_news
 
-[Report](https://github.com/IITC-CE/ingress-intel-total-conversion/issues/new) an issue: [wiki/Reporting-Bugs](https://github.com/IITC-CE/ingress-intel-total-conversion/wiki/Reporting-Bugs)
+- [Report](https://github.com/IITC-CE/ingress-intel-total-conversion/issues/new) an issue: [wiki/Reporting-Bugs](https://github.com/IITC-CE/ingress-intel-total-conversion/wiki/Reporting-Bugs)
 
 
 ## Developers
 
-See [Contribution Guidelines](https://github.com/IITC-CE/ingress-intel-total-conversion/wiki/CONTRIBUTING.md)
-and [Quickstart](https://github.com/IITC-CE/ingress-intel-total-conversion/wiki/HACKING.md#quickstart).
+- See [Contribution Guidelines](https://github.com/IITC-CE/ingress-intel-total-conversion/wiki/CONTRIBUTING)
+- and [Quickstart](https://github.com/IITC-CE/ingress-intel-total-conversion/wiki/HACKING).
 
 
 ## Related projects
 
-- **https://iitc.app**: IITC-CE homepage, template developed [here][iitc.app].
+- **https://iitc.app**: IITC-CE homepage, template developed [here][website-repo].
 
 - **[IITC-Button]**: browser extension, the easiest (though not sole) way to use IITC on desktop.
 
@@ -43,7 +51,7 @@ and [Quickstart](https://github.com/IITC-CE/ingress-intel-total-conversion/wiki/
 
 - **[IITC-Mobile for iOS]**: 3rd-party application, developed by [_Yangkun Zhang_](https://github.com/HubertZhang).
 
-[iitc.app]: https://github.com/IITC-CE/iitc.app
+[website-repo]: https://github.com/IITC-CE/website
 [IITC-Button]: https://github.com/IITC-CE/IITC-Button
 [IITC Mobile]: https://github.com/IITC-CE/ingress-intel-total-conversion/wiki/IITC-Mobile-(Android-app)
 [IITC-Mobile for iOS]: https://github.com/HubertZhang/IITC-Mobile

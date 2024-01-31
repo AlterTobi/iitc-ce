@@ -1,4 +1,10 @@
-/* global log,L -- eslint */
+/* global log, L, IITC, PLAYER -- eslint */
+
+/**
+ * @file This file provides functions for working with maps.
+ * @module map
+ */
+
 function setupCRS () {
 
   // use the earth radius value from s2 geometry library
@@ -33,6 +39,16 @@ function setupCRS () {
   });
 }
 
+/**
+ * Normalizes latitude, longitude, and zoom values. Ensures that the values are valid numbers, providing
+ * defaults if necessary.
+ *
+ * @function normLL
+ * @param {number|string} lat - Latitude value or string that can be converted to a number.
+ * @param {number|string} lng - Longitude value or string that can be converted to a number.
+ * @param {number|string} zoom - Zoom level value or string that can be converted to a number.
+ * @returns {Object} An object containing normalized center (latitude and longitude) and zoom level.
+ */
 function normLL (lat, lng, zoom) {
   return {
     center: [
@@ -43,7 +59,13 @@ function normLL (lat, lng, zoom) {
   };
 }
 
-// retrieves the last shown position from URL or from a cookie
+/**
+ * Retrieves the last known map position from the URL parameters or cookies.
+ * Prioritizes URL parameters over cookies. Extracts and normalizes the latitude, longitude, and zoom level.
+ *
+ * @function getPosition
+ * @returns {Object} An object containing the map's position and zoom level, or undefined if not found.
+ */
 function getPosition () {
   var url = window.getURLParam;
 
@@ -70,6 +92,14 @@ function getPosition () {
   }
 }
 
+/**
+ * Initializes and returns a collection of default basemap layers. The function creates a set of base layers
+ * including CartoDB (both dark and light themes), and various Google Maps layers (Default Ingress Map, Roads,
+ * Roads with Traffic, Satellite, Hybrid, and Terrain).
+ *
+ * @returns {Object.<String, Object>} An object containing different basemap layers ready to be added to a map. Each property of the
+ *                   object is a named map layer, with its value being the corresponding Leaflet tile layer object.
+ */
 function createDefaultBaseMapLayers () {
   var baseLayers = {};
 
@@ -110,6 +140,9 @@ function createDefaultBaseMapLayers () {
   var trafficMutant = L.gridLayer.googleMutant({type: 'roadmap'});
   trafficMutant.addGoogleLayer('TrafficLayer');
   baseLayers['Google Roads + Traffic'] = trafficMutant;
+  var transitMutant = L.gridLayer.googleMutant({ type: 'roadmap' });
+  transitMutant.addGoogleLayer('TransitLayer');
+  baseLayers['Google Roads + Transit'] = transitMutant;
   baseLayers['Google Satellite'] = L.gridLayer.googleMutant({type: 'satellite'});
   baseLayers['Google Hybrid'] = L.gridLayer.googleMutant({type: 'hybrid'});
   baseLayers['Google Terrain'] = L.gridLayer.googleMutant({type: 'terrain'});
@@ -117,59 +150,75 @@ function createDefaultBaseMapLayers () {
   return baseLayers;
 }
 
-function createFactionLayersArray() {
-  return window.TEAM_NAMES.map(() => L.layerGroup());
-}
-
-function createDefaultOverlays () {
-  /* global portalsFactionLayers: true, linksFactionLayers: true, fieldsFactionLayers: true -- eslint*/
+/**
+ * Creates and returns the default overlay layers for the map.
+ * Sets up various overlay layers including portals, links, fields, and faction-specific layers.
+ *
+ * @function createDefaultOverlays
+ * @returns {Object.<String, L.LayerGroup>} An object containing overlay layers for portals, links, fields, and factions
+ */
+function createDefaultOverlays() {
   /* eslint-disable dot-notation  */
 
   var addLayers = {};
 
-  portalsFactionLayers = [];
-  var portalsLayers = [];
-  for (var i = 0; i <= 8; i++) {
-    portalsFactionLayers[i] = createFactionLayersArray();
-    portalsLayers[i] = L.layerGroup();
-    var t = (i === 0 ? 'Unclaimed/Placeholder' : 'Level ' + i) + ' Portals';
-    addLayers[t] = portalsLayers[i];
+  var l0Layer = new IITC.filters.FilterLayer({
+    name: 'Unclaimed/Placeholder Portals',
+    filter: [
+      { portal: true, data: { team: 'N' } },
+      { portal: true, data: { level: undefined } },
+    ],
+  });
+  addLayers[l0Layer.options.name] = l0Layer;
+  for (var i = 1; i <= 8; i++) {
+    var t = 'Level ' + i + ' Portals';
+    var portalsLayer = new IITC.filters.FilterLayer({
+      name: t,
+      filter: [
+        { portal: true, data: { level: i, team: 'R' } },
+        { portal: true, data: { level: i, team: 'E' } },
+      ],
+    });
+    addLayers[t] = portalsLayer;
   }
 
-  fieldsFactionLayers = createFactionLayersArray();
-  var fieldsLayer = L.layerGroup();
-  addLayers['Fields'] = fieldsLayer;
+  var fieldsLayer = new IITC.filters.FilterLayer({
+    name: 'Fields',
+    filter: { field: true },
+  });
+  addLayers[fieldsLayer.options.name] = fieldsLayer;
 
-  linksFactionLayers = createFactionLayersArray();
-  var linksLayer = L.layerGroup();
-  addLayers['Links'] = linksLayer;
+  var linksLayer = new IITC.filters.FilterLayer({
+    name: 'Links',
+    filter: { link: true },
+  });
+  addLayers[linksLayer.options.name] = linksLayer;
 
   // faction-specific layers
-  // these layers don't actually contain any data. instead, every time they're added/removed from the map,
-  // the matching sub-layers within the above portals/fields/links are added/removed from their parent with
-  // the below 'onoverlayadd/onoverlayremove' events
-  var factionLayers = createFactionLayersArray();
-  factionLayers.forEach(function (facLayer, facIdx) {
-    facLayer.on('add remove', function (e) {
-      var fn = e.type + 'Layer';
-      fieldsLayer[fn](fieldsFactionLayers[facIdx]);
-      linksLayer[fn](linksFactionLayers[facIdx]);
-      portalsLayers.forEach(function (portals, lvl) {
-        portals[fn](portalsFactionLayers[lvl][facIdx]);
-      });
-    });
-    addLayers[window.TEAM_NAMES[facIdx]] = facLayer;
+  var resistanceLayer = new IITC.filters.FilterLayer({
+    name: window.TEAM_NAME_RES,
+    filter: { portal: true, link: true, field: true, data: { team: 'R' } },
+  });
+  var enlightenedLayer = new IITC.filters.FilterLayer({
+    name: window.TEAM_NAME_ENL,
+    filter: { portal: true, link: true, field: true, data: { team: 'E' } },
+  });
+  var machinaLayer = new IITC.filters.FilterLayer({
+    name: window.TEAM_NAME_MAC,
+    filter: { portal: true, link: true, field: true, data: { team: 'M' } },
   });
 
   // to avoid any favouritism, we'll put the player's own faction layer first
-  if (window.PLAYER.team !== 'RESISTANCE') {
-    delete addLayers[window.TEAM_NAME_RES];
-    addLayers[window.TEAM_NAME_RES] = factionLayers[window.TEAM_RES];
+  if (PLAYER.team === 'RESISTANCE') {
+    addLayers[resistanceLayer.options.name] = resistanceLayer;
+    addLayers[enlightenedLayer.options.name] = enlightenedLayer;
+  } else {
+    addLayers[enlightenedLayer.options.name] = enlightenedLayer;
+    addLayers[resistanceLayer.options.name] = resistanceLayer;
   }
 
   // and just put __MACHINA__ faction last
-  delete addLayers[window.TEAM_NAME_MAC];
-  addLayers[window.TEAM_NAME_MAC] = factionLayers[window.TEAM_MAC];
+  addLayers[window.TEAM_NAME_MAC] = machinaLayer;
 
   return addLayers;
   /* eslint-enable dot-notation  */
@@ -182,6 +231,22 @@ window.mapOptions = {
     : true // default
 };
 
+/**
+ * Initializes the Leaflet map and configures various map layers and event listeners.
+ * This function is responsible for setting up the base map,
+ * including the default basemap tiles (CartoDB, Default Ingress Map, Google Maps),
+ * and configuring the map's properties such as center, zoom, bounds, and renderer options.
+ * It also clears the 'Loading, please wait' message from the map container.
+ *
+ * Important functionalities:
+ * - Adds dummy divs to Leaflet control areas to accommodate IITC UI elements.
+ * - Creates and adds base layers and overlays to the map.
+ * - Configures event listeners for map movements, including aborting pending requests and refreshing map data.
+ * - Manages cookies for map position and zoom level.
+ * - Handles the 'iitcLoaded' hook to set the initial map view and evaluate URL parameters for portal selection.
+ *
+ * @function setupMap
+ */
 window.setupMap = function () {
   setupCRS();
 
@@ -219,8 +284,6 @@ window.setupMap = function () {
   }
   var baseLayers = createDefaultBaseMapLayers();
   var overlays = createDefaultOverlays();
-  map.addLayer(overlays.Neutral);
-  delete overlays.Neutral;
 
   var layerChooser = window.layerChooser = new window.LayerChooser(baseLayers, overlays, {map: map})
     .addTo(map);

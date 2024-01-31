@@ -1,8 +1,16 @@
-/// PORTAL DATA TOOLS ///////////////////////////////////////////////////
-// misc functions to get portal info
+/**
+ * @file Contain misc functions to get portal info
+ * @module portal_data
+ */
 
-// search through the links data for all that link from or to a portal. returns an object with separate lists of in
-// and out links. may or may not be as accurate as the portal details, depending on how much data the API returns
+/**
+ * Search through the links data for all that link from and to a portal. Returns an object with separate lists of in
+ * and out links. May or may not be as accurate as the portal details, depending on how much data the API returns.
+ *
+ * @function getPortalLinks
+ * @param {string} guid - The GUID of the portal to search for links.
+ * @returns {Object} An object containing arrays of incoming ('in') and outgoing ('out') link GUIDs.
+ */
 window.getPortalLinks = function(guid) {
 
   var links = { in: [], out: [] };
@@ -21,13 +29,25 @@ window.getPortalLinks = function(guid) {
   return links;
 }
 
+/**
+ * Counts the total number of links (both incoming and outgoing) for a specified portal.
+ *
+ * @function getPortalLinksCount
+ * @param {string} guid - The GUID of the portal.
+ * @returns {number} The total number of links for the portal.
+ */
 window.getPortalLinksCount = function(guid) {
   var links = getPortalLinks(guid);
   return links.in.length+links.out.length;
 }
 
-
-// search through the fields for all that reference a portal
+/**
+ * Searches through the fields for all fields that reference a specified portal.
+ *
+ * @function getPortalFields
+ * @param {string} guid - The GUID of the portal to search for fields.
+ * @returns {Array} An array containing the GUIDs of fields associated with the portal.
+ */
 window.getPortalFields = function(guid) {
   var fields = [];
 
@@ -45,58 +65,35 @@ window.getPortalFields = function(guid) {
   return fields;
 }
 
+/**
+ * Counts the total number of fields associated with a specified portal.
+ *
+ * @function getPortalFieldsCount
+ * @param {string} guid - The GUID of the portal.
+ * @returns {number} The total number of fields associated with the portal.
+ */
 window.getPortalFieldsCount = function(guid) {
   var fields = getPortalFields(guid);
   return fields.length;
-}
-
-
-// find the lat/lon for a portal, using any and all available data
-// (we have the list of portals, the cached portal details, plus links and fields as sources of portal locations)
-window.findPortalLatLng = function(guid) {
-  if (window.portals[guid]) {
-    return window.portals[guid].getLatLng();
-  }
-
-  // not found in portals - try the cached (and possibly stale) details - good enough for location
-  var details = portalDetail.get(guid);
-  if (details) {
-    return L.latLng (details.latE6/1E6, details.lngE6/1E6);
-  }
-
-  // now try searching through fields
-  for (var fguid in window.fields) {
-    var f = window.fields[fguid].options.data;
-
-    for (var i in f.points) {
-      if (f.points[i].guid == guid) {
-        return L.latLng (f.points[i].latE6/1E6, f.points[i].lngE6/1E6);
-      }
-    }
-  }
-
-  // and finally search through links
-  for (var lguid in window.links) {
-    var l = window.links[lguid].options.data;
-    if (l.oGuid == guid) {
-      return L.latLng (l.oLatE6/1E6, l.oLngE6/1E6);
-    }
-    if (l.dGuid == guid) {
-      return L.latLng (l.dLatE6/1E6, l.dLngE6/1E6);
-    }
-  }
-
-  // no luck finding portal lat/lng
-  return undefined;
 };
 
 
-(function() {
+(function () {
   var cache = {};
   var cache_level = 0;
   var GC_LIMIT = 15000; // run garbage collector when cache has more that 5000 items
-  var GC_KEEP  = 10000; // keep the 4000 most recent items
+  var GC_KEEP = 10000; // keep the 4000 most recent items
 
+  /**
+   * Finds a portal GUID by its position. Searches through currently rendered portals, fields, and links.
+   * If the portal is not found in the current render, it checks a cache of recently seen portals.
+   *
+   * @function
+   * @name findPortalGuidByPositionE6
+   * @param {number} latE6 - The latitude in E6 format.
+   * @param {number} lngE6 - The longitude in E6 format.
+   * @returns {string|null} The GUID of the portal at the specified location, or null if not found.
+   */
   window.findPortalGuidByPositionE6 = function(latE6, lngE6) {
     var item = cache[latE6+","+lngE6];
     if(item) return item[0];
@@ -127,6 +124,15 @@ window.findPortalLatLng = function(guid) {
     return null;
   };
 
+  /**
+   * Pushes a portal GUID and its position into a cache.
+   *
+   * @function
+   * @name pushPortalGuidPositionCache
+   * @param {string} guid - The GUID of the portal.
+   * @param {number} latE6 - The latitude in E6 format.
+   * @param {number} lngE6 - The longitude in E6 format.
+   */
   window.pushPortalGuidPositionCache = function(guid, latE6, lngE6) {
     cache[latE6+","+lngE6] = [guid, Date.now()];
     cache_level += 1;
@@ -143,46 +149,3 @@ window.findPortalLatLng = function(guid) {
 })();
 
 
-// get the AP gains from a portal, based only on the brief summary data from portals, links and fields
-// not entirely accurate - but available for all portals on the screen
-window.getPortalApGain = function(guid) {
-
-  var p = window.portals[guid];
-  if (p) {
-    var data = p.options.data;
-
-    var linkCount = getPortalLinksCount(guid);
-    var fieldCount = getPortalFieldsCount(guid);
-
-    var result = portalApGainMaths(data.resCount, linkCount, fieldCount);
-    return result;
-  }
-
-  return undefined;
-}
-
-// given counts of resonators, links and fields, calculate the available AP
-// doesn't take account AP for resonator upgrades or AP for adding mods
-window.portalApGainMaths = function(resCount, linkCount, fieldCount) {
-
-  var deployAp = (8-resCount)*DEPLOY_RESONATOR;
-  if (resCount == 0) deployAp += CAPTURE_PORTAL;
-  if (resCount != 8) deployAp += COMPLETION_BONUS;
-  // there could also be AP for upgrading existing resonators, and for deploying mods - but we don't have data for that
-  var friendlyAp = deployAp;
-
-  var destroyResoAp = resCount*DESTROY_RESONATOR;
-  var destroyLinkAp = linkCount*DESTROY_LINK;
-  var destroyFieldAp = fieldCount*DESTROY_FIELD;
-  var captureAp = CAPTURE_PORTAL + 8 * DEPLOY_RESONATOR + COMPLETION_BONUS;
-  var destroyAp = destroyResoAp+destroyLinkAp+destroyFieldAp;
-  var enemyAp = destroyAp+captureAp;
-
-  return {
-    friendlyAp: friendlyAp,
-    enemyAp: enemyAp,
-    destroyAp: destroyAp,
-    destroyResoAp: destroyResoAp,
-    captureAp: captureAp
-  }
-}

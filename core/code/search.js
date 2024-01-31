@@ -1,39 +1,55 @@
+/* global L -- eslint */
 
-// SEARCH /////////////////////////////////////////////////////////
-
-/*
-you can implement your own result provider by listing to the search hook:
-addHook('search', function(query) {});
-
-`query` is an object with the following members:
-- `term` is the term for which the user has searched
-- `confirmed` is a boolean indicating if the user has pressed enter after searching. You should not search online or
-  do heavy processing unless the user has confirmed the search term
-- `addResult(result)` can be called to add a result to the query.
-
-`result` may have the following members (`title` is required, as well as one of `position` and `bounds`):
-- `title`: the label for this result. Will be interpreted as HTML, so make sure to escape properly.
-- `description`: secondary information for this result. Will be interpreted as HTML, so make sure to escape properly.
-- `position`: a L.LatLng object describing the position of this result
-- `bounds`: a L.LatLngBounds object describing the bounds of this result
-- `layer`: a ILayer to be added to the map when the user selects this search result. Will be generated if not set.
-  Set to `null` to prevent the result from being added to the map.
-- `icon`: a URL to a icon to display in the result list. Should be 12x12.
-- `onSelected(result, event)`: a handler to be called when the result is selected. May return `true` to prevent the map
-  from being repositioned. You may reposition the map yourself or do other work.
-- `onRemove(result)`: a handler to be called when the result is removed from the map (because another result has been
-  selected or the search was cancelled by the user).
-*/
-
+/**
+ * Provides functionality for the search system within the application.
+ *
+ * You can implement your own result provider by listening to the search hook:
+ * ```window.addHook('search', function(query) {});```.
+ *
+ * The `query` object has the following members:
+ * - `term`: The term for which the user has searched.
+ * - `confirmed`: A boolean indicating if the user has pressed enter after searching.
+ *   You should not search online or do heavy processing unless the user has confirmed the search term.
+ * - `addResult(result)`: A method to add a result to the query.
+ *
+ * The `result` object can have the following members (`title` is required, as well as one of `position` and `bounds`):
+ * - `title`: The label for this result. Will be interpreted as HTML, so make sure to escape properly.
+ * - `description`: Secondary information for this result. Will be interpreted as HTML, so make sure to escape properly.
+ * - `position`: A L.LatLng object describing the position of this result.
+ * - `bounds`: A L.LatLngBounds object describing the bounds of this result.
+ * - `layer`: An ILayer to be added to the map when the user selects this search result.
+ *   Will be generated if not set. Set to `null` to prevent the result from being added to the map.
+ * - `icon`: A URL to an icon to display in the result list. Should be 12x12 pixels.
+ * - `onSelected(result, event)`: A handler to be called when the result is selected.
+ *   May return `true` to prevent the map from being repositioned. You may reposition the map yourself or do other work.
+ * - `onRemove(result)`: A handler to be called when the result is removed from the map
+ *   (because another result has been selected or the search was cancelled by the user).
+ *  @namespace window.search
+ */
 window.search = {
   lastSearch: null,
 };
 
+/**
+ * Represents a search query.
+ *
+ * @memberof window.search
+ * @class
+ * @name window.search.Query
+ * @param {string} term - The search term.
+ * @param {boolean} confirmed - Indicates if the search is confirmed (e.g., by pressing Enter).
+ */
 window.search.Query = function(term, confirmed) {
   this.term = term;
   this.confirmed = confirmed;
   this.init();
 };
+
+/**
+ * Initializes the search query, setting up the DOM elements and triggering the 'search' hook.
+ *
+ * @function
+ */
 window.search.Query.prototype.init = function() {
   this.results = [];
 
@@ -59,14 +75,33 @@ window.search.Query.prototype.init = function() {
 
   runHooks('search', this);
 };
+
+/**
+ * Displays the search query results in the search wrapper.
+ *
+ * @function
+ */
 window.search.Query.prototype.show = function() {
   this.container.appendTo('#searchwrapper');
 };
+
+/**
+ * Hides the search query results and cleans up.
+ *
+ * @function
+ */
 window.search.Query.prototype.hide = function() {
   this.container.remove();
   this.removeSelectedResult();
   this.removeHoverResult();
 };
+
+/**
+ * Adds a search result to this query.
+ *
+ * @function
+ * @param {Object} result - The search result object to add.
+ */
 window.search.Query.prototype.addResult = function(result) {
   if(this.results.length == 0) {
     // remove 'No results'
@@ -116,9 +151,15 @@ window.search.Query.prototype.addResult = function(result) {
       .append($('<em>')
         .append(result.description));
   }
-  
 };
 
+/**
+ * Creates and returns a layer for the given search result, which could be markers or shapes on the map.
+ *
+ * @function
+ * @param {Object} result - The search result object.
+ * @returns {L.Layer} The layer created for this result.
+ */
 window.search.Query.prototype.resultLayer = function(result) {
   if(result.layer !== null && !result.layer) {
     result.layer = L.layerGroup();
@@ -142,6 +183,14 @@ window.search.Query.prototype.resultLayer = function(result) {
 return result.layer;
 
 };
+
+/**
+ * Handles the selection of a search result, including map view adjustments and layer management.
+ *
+ * @function
+ * @param {Object} result - The selected search result object.
+ * @param {Event} ev - The event associated with the selection.
+ */
 window.search.Query.prototype.onResultSelected = function(result, ev) {
   this.removeHoverResult();
   this.removeSelectedResult();
@@ -173,6 +222,11 @@ window.search.Query.prototype.onResultSelected = function(result, ev) {
   if(window.isSmartphone()) window.show('map');
 }
 
+/**
+ * Removes the currently selected search result from the map and performs cleanup.
+ *
+ * @function
+ */
 window.search.Query.prototype.removeSelectedResult = function() {
   if(this.selectedResult) {
     if(this.selectedResult.layer) map.removeLayer(this.selectedResult.layer);
@@ -180,6 +234,13 @@ window.search.Query.prototype.removeSelectedResult = function() {
   }
 }
 
+/**
+ * Handles the start of a hover over a search result. Adds the layer for the result to the map if not already selected.
+ *
+ * @function
+ * @param {Object} result - The search result object being hovered over.
+ * @param {Event} ev - The event associated with the hover start.
+ */
 window.search.Query.prototype.onResultHoverStart = function(result, ev) {
   this.removeHoverResult();
   this.hoverResult = result;
@@ -191,6 +252,11 @@ window.search.Query.prototype.onResultHoverStart = function(result, ev) {
   if(result.layer) map.addLayer(result.layer);
 };
 
+/**
+ * Removes the hover result layer from the map unless it's the selected result.
+ *
+ * @function
+ */
 window.search.Query.prototype.removeHoverResult = function() {
   if(this.hoverResult !== this.selectedResult) {
     if(this.hoverResult) {
@@ -200,10 +266,24 @@ window.search.Query.prototype.removeHoverResult = function() {
   this.hoverResult = null;
 };
 
+/**
+ * Handles the end of a hover over a search result. Removes the hover result layer from the map.
+ *
+ * @function
+ * @param {Object} result - The search result object being hovered over.
+ * @param {Event} ev - The event associated with the hover end.
+ */
 window.search.Query.prototype.onResultHoverEnd = function(result, ev) {
   this.removeHoverResult();
 };
 
+/**
+ * Initiates a search with the specified term and confirmation status.
+ *
+ * @function window.search.doSearch
+ * @param {string} term - The search term.
+ * @param {boolean} confirmed - Indicates if the search term is confirmed.
+ */
 window.search.doSearch = function(term, confirmed) {
   term = term.trim();
 
@@ -236,6 +316,11 @@ window.search.doSearch = function(term, confirmed) {
   window.search.lastSearch.show();
 };
 
+/**
+ * Sets up the search input field and button functionality.
+ *
+ * @function window.search.setup
+ */
 window.search.setup = function() {
   $('#search')
     .keypress(function(e) {
@@ -259,36 +344,49 @@ window.search.setup = function() {
   });
 };
 
+/**
+ * Adds a search result for a portal to the search query results.
+ *
+ * @function window.search.addSearchResult
+ * @param {Object} query - The search query object to which the result will be added.
+ * @param {Object} data - The data for the search result. This includes information such as title, team, level, health, etc.
+ * @param {string} guid - GUID if the portal.
+ */
+window.search.addSearchResult = function (query, data, guid) {
+  var team = window.teamStringToId(data.team);
+  var color = team === window.TEAM_NONE ? '#CCC' : window.COLORS[team];
+  var latLng = L.latLng(data.latE6 / 1e6, data.lngE6 / 1e6);
+  query.addResult({
+    title: data.title,
+    description: window.TEAM_SHORTNAMES[team] + ', L' + data.level + ', ' + data.health + '%, ' + data.resCount + ' Resonators',
+    position: latLng,
+    icon: 'data:image/svg+xml;base64,' + btoa('@include_string:images/icon-portal.svg@'.replace(/%COLOR%/g, color)),
+    onSelected: function (result, event) {
+      if (event.type === 'dblclick') {
+        window.zoomToAndShowPortal(guid, latLng);
+      } else if (window.portals[guid]) {
+        if (!window.map.getBounds().contains(result.position)) {
+          window.map.setView(result.position);
+        }
+        window.renderPortalDetails(guid);
+      } else {
+        window.selectPortalByLatLng(latLng);
+      }
+      return true; // prevent default behavior
+    },
+  });
+};
 
 // search for portals
-addHook('search', function(query) {
+window.addHook('search', function (query) {
   var term = query.term.toLowerCase();
-  var teams = ['NEU','RES','ENL'];
 
   $.each(portals, function(guid, portal) {
     var data = portal.options.data;
     if(!data.title) return;
 
     if(data.title.toLowerCase().indexOf(term) !== -1) {
-      var team = portal.options.team;
-      var color = team==TEAM_NONE ? '#CCC' : COLORS[team];
-      query.addResult({
-        title: data.title,
-        description: teams[team] + ', L' + data.level + ', ' + data.health + '%, ' + data.resCount + ' Resonators',
-        position: portal.getLatLng(),
-        icon: 'data:image/svg+xml;base64,'+btoa('@include_string:images/icon-portal.svg@'.replace(/%COLOR%/g, color)),
-        onSelected: function(result, event) {
-          if(event.type == 'dblclick') {
-            zoomToAndShowPortal(guid, portal.getLatLng());
-          } else if(window.portals[guid]) {
-            if(!map.getBounds().contains(result.position)) map.setView(result.position);
-            renderPortalDetails(guid);
-          } else {
-            window.selectPortalByLatLng(portal.getLatLng());
-          }
-          return true; // prevent default behavior
-        },
-      });
+      window.search.addSearchResult(query, data, guid);
     }
   });
 });
@@ -296,8 +394,8 @@ addHook('search', function(query) {
 
 // search for locations
 // TODO: recognize 50°31'03.8"N 7°59'05.3"E and similar formats
-addHook('search', function(query) {
-  var locations = query.term.match(/[+-]?\d+\.\d+, ?[+-]?\d+\.\d+/g);
+window.addHook('search', function (query) {
+  var locations = query.term.replaceAll(/%2C/gi, ',').match(/[+-]?\d+\.\d+, ?[+-]?\d+\.\d+/g);
   var added = {};
   if(!locations) return;
   locations.forEach(function(location) {
@@ -330,7 +428,7 @@ addHook('search', function(query) {
 
 
 // search on OpenStreetMap
-addHook('search', function(query) {
+window.addHook('search', function (query) {
   if(!query.confirmed) return;
 
   // Viewbox search orders results so they're closer to the viewbox
@@ -359,7 +457,7 @@ addHook('search', function(query) {
     data.forEach(function(item) {
       if(resultMap[item.place_id]) { return; } // duplicate
       resultMap[item.place_id] = true;
-      
+
       var result = {
         title: item.display_name,
         description: 'Type: ' + item.type,
@@ -393,11 +491,26 @@ addHook('search', function(query) {
       query.addResult(result);
     });
   }
-  
+
   // Bounded search allows amenity-only searches (e.g. "amenity=toilet") via special phrases
   // http://wiki.openstreetmap.org/wiki/Nominatim/Special_Phrases/EN
   var bounded = '&bounded=1';
-  
+
   $.getJSON(NOMINATIM + encodeURIComponent(query.term) + viewbox + bounded, onQueryResult.bind(null, true));
 });
 
+// search on guid
+window.addHook('search', function (query) {
+  const guid_re = /[0-9a-f]{32}\.[0-9a-f]{2}/;
+  const res = query.term.match(guid_re);
+  if (res) {
+    const guid = res[0];
+    const data = window.portalDetail.get(guid);
+    if (data) window.search.addSearchResult(query, data, guid);
+    else {
+      window.portalDetail.request(guid).then(function (data) {
+        window.search.addSearchResult(query, data, guid);
+      });
+    }
+  }
+});
