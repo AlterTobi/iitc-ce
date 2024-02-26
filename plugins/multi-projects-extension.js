@@ -1,12 +1,17 @@
 // @author         ZasoGD
 // @name           Multi Projects Extension
 // @category       Controls
-// @version        0.1.2
+// @version        0.1.3
 // @description    Create separated projects in some plugins.
 
+/* global IITC -- eslint */
 /* exported setup, changelog --eslint */
 
 var changelog = [
+  {
+    version: '0.1.3',
+    changes: ['IITC.toolbox API is used to create plugin buttons'],
+  },
   {
     version: '0.1.2',
     changes: ['Version upgrade due to a change in the wrapper: added plugin icon'],
@@ -262,7 +267,12 @@ window.plugin.mpe.ui.redrawHTMLOptions = function(PJ){
 }
 
 window.plugin.mpe.ui.addControl = function(){
-  $('#toolbox').append('<a class="list-group-item" onclick="window.plugin.mpe.dialog.openMain();return false;"><i class="fa fa-files-o"></i>MultiProjects</a>');
+  IITC.toolbox.addButton({
+    label: 'MultiProjects',
+    action: window.plugin.mpe.dialog.openMain,
+    class: 'list-group-item',
+    icon: 'fa-files-o',
+  });
 }
 window.plugin.mpe.ui.appendContainerInSidebar = function(){
   if(!$('#multi-projects.mpeSidebar').length){

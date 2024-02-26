@@ -1,12 +1,17 @@
 // @author         breunigs
 // @name           Player level guess
 // @category       Info
-// @version        0.5.8
+// @version        0.5.9
 // @description    Try to determine player levels from the data available in the current view.
 
+/* global IITC -- eslint */
 /* exported setup, changelog --eslint */
 
 var changelog = [
+  {
+    version: '0.5.9',
+    changes: ['IITC.toolbox API is used to create plugin buttons'],
+  },
   {
     version: '0.5.8',
     changes: ['Version upgrade due to a change in the wrapper: added plugin icon'],
@@ -21,7 +26,11 @@ window.plugin.guessPlayerLevels.BURSTER_RANGES = [0, 42, 48, 58, 72, 90, 112, 13
 // (like constructor, __defineGetter__, etc.
 
 window.plugin.guessPlayerLevels.setupCallback = function() {
-  $('#toolbox').append(' <a onclick="window.plugin.guessPlayerLevels.guess()" title="Show player level guesses based on resonator placement in displayed portals">Guess player levels</a>');
+  IITC.toolbox.addButton({
+    label: 'Guess player levels',
+    title: 'Show player level guesses based on resonator placement in displayed portals',
+    action: window.plugin.guessPlayerLevels.guess,
+  });
   addHook('portalDetailLoaded', window.plugin.guessPlayerLevels.extractPortalData);
   addHook('publicChatDataAvailable', window.plugin.guessPlayerLevels.extractChatData);
 }

@@ -187,6 +187,8 @@ public class IITC_Mobile extends AppCompatActivity
         mAllowedHostnames.put("google.com", googleUA);
         mAllowedHostnames.put("youtube.com", googleUA);
         mAllowedHostnames.put("facebook.com", mDesktopUA);
+        mAllowedHostnames.put("appleid.apple.com", mIITCDefaultUA);
+        mAllowedHostnames.put("signin.nianticlabs.com", mIITCDefaultUA);
 
         // enable progress bar above action bar
         // must be called BEFORE calling parent method
@@ -358,9 +360,6 @@ public class IITC_Mobile extends AppCompatActivity
                 || key.equals("pref_external_storage")) {
             // no reload needed
             return;
-        } else if (key.equals("pref_popup")) {
-            final boolean enablePopup = mSharedPrefs.getBoolean("pref_popup", false);
-            mIitcWebView.setSupportPopup(enablePopup);
         } else if (key.equals("pref_webview_zoom")) {
             mIitcWebView.setWebViewZoom(Integer.parseInt(mSharedPrefs.getString("pref_webview_zoom", "-1")));
         }

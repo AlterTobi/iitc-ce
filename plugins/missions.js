@@ -1,12 +1,17 @@
 // @author         jonatkins
 // @name           Missions
 // @category       Info
-// @version        0.3.1
+// @version        0.3.2
 // @description    View missions. Marking progress on waypoints/missions basis. Showing mission paths on the map.
 
+/* global IITC -- eslint */
 /* exported setup, changelog --eslint */
 
 var changelog = [
+  {
+    version: '0.3.2',
+    changes: ['IITC.toolbox API is used to create plugin buttons'],
+  },
   {
     version: '0.3.1',
     changes: ['Version upgrade due to a change in the wrapper: added plugin icon'],
@@ -1160,7 +1165,10 @@ window.plugin.missions = {
     this.loadData();
 
     $('<style>').prop('type', 'text/css').html('@include_string:missions.css@').appendTo('head');
-    $('#toolbox').append('<a tabindex="0" onclick="plugin.missions.openTopMissions();">Missions in view</a>');
+    IITC.toolbox.addButton({
+      label: 'Missions in view',
+      action: () => window.plugin.missions.openTopMissions(),
+    });
 
 		if (window.useAppPanes()) {
       this.mobilePane = document.createElement('div');
