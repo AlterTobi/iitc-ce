@@ -5,16 +5,25 @@
   "repository": "https://github.com/IITC-CE/ingress-intel-total-conversion.git",
   "license": "ISC",
   "private": true,
+  "type": "module",
   "devDependencies": {
-    "eslint": "^8.20.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "prettier": "^2.7.1"
+    "@eslint/js": "^9.9.1",
+    "chai": "^4.3.6",
+    "eslint": "^9.9.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "globals": "^15.9.0",
+    "jsdoc": "^4.0.4",
+    "mocha": "^10.1.0",
+    "prettier": "^3.3.3",
+    "taffydb": "^2.7.3",
+    "tui-jsdoc-template": "^1.2.2"
   },
   "scripts": {
     "build": "npm run build:local",
     "build:local": "./build.py local",
     "build:mobile": "./build.py mobile",
-    "fileserver": "./web_server_local.py local"
+    "fileserver": "./web_server_local.py local",
+    "test": "mocha --exit"
   }
 }

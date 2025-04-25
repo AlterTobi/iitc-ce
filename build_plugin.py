@@ -52,7 +52,7 @@ def fill_meta(source, plugin_name, dist_path):
                 if not re.match(r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$', value):
                     print(f'{plugin_name}: wrong version format: {value}')  # expected: major.minor.patch
                 elif settings.version_timestamp:  # append timestamp only for well-formed version
-                    line = line.replace(value, '{ver}.{.build_timestamp}'.format(settings, ver=value))
+                    line = line.replace(value, '{ver}.{timestamp}'.format(ver=value, timestamp=settings.build_timestamp()))
             elif key == 'name':
                 if value == 'IITC: Ingress intel map total conversion':
                     is_main = True
@@ -142,7 +142,10 @@ def expand_template(match, path=None):
     quote = "'%s'"
     kw, filename = match.groups()
     if not filename:
-        return quote % getattr(settings, kw)
+        value = getattr(settings, kw)
+        if callable(value):
+            value = value()
+        return quote % value
 
     fullname = path / filename
     if kw == 'include_raw':
@@ -173,6 +176,10 @@ def process_file(source, out_dir, dist_path=None, deps_list=None):
         meta, script = readtext(source).split('\n\n', 1)
     except ValueError:
         raise Exception(f'{source}: wrong input: empty line expected after metablock')
+    except (OSError, IOError) as e:
+        print(f"{source}: {type(e).__name__}: {e}")
+        return
+
     plugin_name = source.stem
     meta, is_main = fill_meta(meta, plugin_name, dist_path)
     settings.plugin_id = plugin_name
