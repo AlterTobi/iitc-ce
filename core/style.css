@@ -161,6 +161,35 @@ a:hover {
   margin-left: 720px;
 }
 
+/* leaflet controls */
+.leaflet-left, .leaflet-right {
+  display: grid;
+  grid-gap: 10px;
+  justify-items: baseline;
+}
+
+.leaflet-right {
+  justify-items: end;
+}
+
+.leaflet-left .leaflet-control,
+.leaflet-right .leaflet-control {
+  margin: 0;
+}
+
+.leaflet-top {
+  top: 10px;
+}
+.leaflet-right {
+  right: 10px;
+}
+.leaflet-bottom {
+  bottom: 10px;
+}
+.leaflet-left {
+  left: 10px;
+}
+
 .help {
   cursor: help;
 }
@@ -323,6 +352,15 @@ em {
   height: 100%;
 }
 
+#chatinput.public mark,
+#chatinput.public input {
+  color: #f66;
+}
+
+#chatinput.alerts mark {
+  color: #bbb;
+}
+
 #chat td, #chatinput td {
   font-size: 13px;
   vertical-align: top;
@@ -430,6 +468,9 @@ summary {
   padding:3px 4px 1px 4px;
 }
 
+.bidi-isolate {
+    unicode-bidi: isolate;
+}
 
 
 /* sidebar ************************************************************/
@@ -555,52 +596,79 @@ input[type="search"], input[type="url"] {
 }
 #search {
   width: 100%;
-  padding-right: 24px;
+  padding-left: 24px;
+  padding-right: 36px;
 }
-#buttongeolocation {
+#search::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+#searchicon, #searchcancel, #buttongeolocation {
+  display: flex;
+  align-items: center;
   position: absolute;
-  right: 0;
-  bottom: 0;
   margin: 0;
   border: 0 none transparent;
-  padding: 0 2px 0 0;
-  height: 100%;
+  padding: 0 2px;
+  height: 24px;
   background-color: transparent;
+}
+#searchicon img, #searchcancel img, #buttongeolocation img {
+  height: 20px;
+}
+#searchicon {
+  left: 0;
+}
+#searchcancel {
+  right: 24px;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+#searchcancel.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+#buttongeolocation {
+  right: 0;
+  cursor: pointer;
 }
 #buttongeolocation:focus {
   outline: 1px dotted #ffce00;
-}
-#buttongeolocation img {
-  vertical-align: middle;
-}
-#searchwrapper h3 {
-  font-size: 1em;
-  height: auto;
-  cursor: pointer;
 }
 .searchquery {
   max-height: 25em;
   overflow-y: auto;
 }
-#searchwrapper .ui-accordion-header::before {
-  font-size: 18px;
+#searchwrapper h3 {
+  padding: 0 0 0 25px;
+  position: relative;
+  font-size: 1em;
+  height: auto;
+  cursor: pointer;
+}
+#searchwrapper h3::before {
+  position: absolute;
+  left: 5px;
+  font-size: 14px;
   margin-right: 2px;
   font-weight: normal;
-  line-height: 1em;
-  content: "⊞";
+  content: "▲";
+  transition: transform 0.3s ease;
 }
-#searchwrapper .ui-accordion-header-active::before {
-  content: "⊟";
-}
-#searchwrapper .ui-accordion-content {
-  margin: 0;
-  overflow: hidden;
+#searchwrapper .searchquery.collapsed h3::before {
+  transform: rotate(180deg);
 }
 #searchwrapper ul {
-  padding-left: 14px;
+  max-height: 100%;
+  padding-left: 16px;
+  overflow: hidden;
 }
 #searchwrapper li {
   cursor: pointer;
+}
+#searchwrapper .searchquery.collapsed ul {
+  max-height: 0;
 }
 #searchwrapper li a {
   margin-left: -14px;
@@ -840,7 +908,7 @@ h3.title {
 }
 
 #toolbox {
-  display: none;
+  display: none !important;
 }
 
 #toolbox, #toolbox_component {
@@ -1185,16 +1253,38 @@ td + td {
 }
 
 #portal_highlight_select {
-  position: absolute;
-  top:5px;
-  left:10px;
   z-index: 2500;
   font-size:11px;
   background-color:#0E3C46;
   color:#ffce00;
-
+  order: -100;
 }
 
+.leaflet-control-scale {
+  order: -90;
+}
+
+.leaflet-bar {
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  box-shadow: none;
+}
+
+.leaflet-bar a {
+  text-decoration: none;
+}
+
+.leaflet-control-zoom-in, .leaflet-control-zoom-out {
+  background-size: 18px;
+  font-size: 0 !important;
+}
+
+.leaflet-control-zoom-in {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M9 3v12M3 9h12' stroke='black' stroke-width='2.2' fill='none'/%3E%3C/svg%3E");
+}
+
+.leaflet-control-zoom-out {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M3.5 9h11' stroke='black' stroke-width='2.2' fill='none'/%3E%3C/svg%3E");
+}
 
 
 .portal_details th, .portal_details td {

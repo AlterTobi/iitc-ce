@@ -1,4 +1,4 @@
-/* global L */
+/* global IITC, L, log -- eslint */
 
 /**
  * Manages rendering of map data (portals, links, fields) into Leaflet.
@@ -6,7 +6,7 @@
  */
 window.Render = function () {
   this.portalMarkerScale = undefined;
-}
+};
 
 /**
  * Initiates a render pass. It's called at the start of making a batch of data requests to the servers.
@@ -16,7 +16,7 @@ window.Render = function () {
  * @param {L.LatLngBounds} bounds - The bounds within which the render pass will occur.
  */
 window.Render.prototype.startRenderPass = function (bounds) {
-  this.deletedGuid = {};  // object - represents the set of all deleted game entity GUIDs seen in a render pass
+  this.deletedGuid = {}; // object - represents the set of all deleted game entity GUIDs seen in a render pass
 
   this.seenPortalsGuid = {};
   this.seenLinksGuid = {};
@@ -31,9 +31,8 @@ window.Render.prototype.startRenderPass = function (bounds) {
   this.clearLinksOutsideBounds(paddedBounds);
   this.clearFieldsOutsideBounds(paddedBounds);
 
-
   this.rescalePortalMarkers();
-}
+};
 
 /**
  * Clears portals outside the specified bounds.
@@ -44,13 +43,15 @@ window.Render.prototype.startRenderPass = function (bounds) {
  */
 window.Render.prototype.clearPortalsOutsideBounds = function (bounds) {
   for (var guid in window.portals) {
-    var p = portals[guid];
+    var p = window.portals[guid];
     // clear portals outside visible bounds - unless it's the selected portal, or it's relevant to artifacts
-    if (!bounds.contains(p.getLatLng()) && guid !== selectedPortal && !artifact.isInterestingPortal(guid)) {
-      this.deletePortalEntity(guid);
+    if (!bounds.contains(p.getLatLng()) && guid !== window.selectedPortal && !window.artifact.isInterestingPortal(guid)) {
+      // remove the marker as a layer first
+      // deletion will be done at endRenderPass
+      p.remove();
     }
   }
-}
+};
 
 /**
  * Clears links that are outside the specified bounds.
@@ -61,7 +62,7 @@ window.Render.prototype.clearPortalsOutsideBounds = function (bounds) {
  */
 window.Render.prototype.clearLinksOutsideBounds = function (bounds) {
   for (var guid in window.links) {
-    var l = links[guid];
+    var l = window.links[guid];
 
     // NOTE: our geodesic lines can have lots of intermediate points. the bounds calculation hasn't been optimised for this
     // so can be particularly slow. a simple bounds check based on start+end point will be good enough for this check
@@ -72,7 +73,7 @@ window.Render.prototype.clearLinksOutsideBounds = function (bounds) {
       this.deleteLinkEntity(guid);
     }
   }
-}
+};
 
 /**
  * Clears fields that are outside the specified bounds.
@@ -83,7 +84,7 @@ window.Render.prototype.clearLinksOutsideBounds = function (bounds) {
  */
 window.Render.prototype.clearFieldsOutsideBounds = function (bounds) {
   for (var guid in window.fields) {
-    var f = fields[guid];
+    var f = window.fields[guid];
 
     // NOTE: our geodesic polys can have lots of intermediate points. the bounds calculation hasn't been optimised for this
     // so can be particularly slow. a simple bounds check based on corner points will be good enough for this check
@@ -94,7 +95,7 @@ window.Render.prototype.clearFieldsOutsideBounds = function (bounds) {
       this.deleteFieldEntity(guid);
     }
   }
-}
+};
 
 /**
  * Processes tile data including deleted entity GUIDs and game entities.
@@ -103,10 +104,10 @@ window.Render.prototype.clearFieldsOutsideBounds = function (bounds) {
  * @memberof Render
  * @param {Object} tiledata - Data for a specific map tile.
  */
-window.Render.prototype.processTileData = function(tiledata) {
-  this.processDeletedGameEntityGuids(tiledata.deletedGameEntityGuids||[]);
-  this.processGameEntities(tiledata.gameEntities||[]);
-}
+window.Render.prototype.processTileData = function (tiledata) {
+  this.processDeletedGameEntityGuids(tiledata.deletedGameEntityGuids || []);
+  this.processGameEntities(tiledata.gameEntities || []);
+};
 
 /**
  * Processes deleted game entity GUIDs and removes them from the map.
@@ -115,24 +116,22 @@ window.Render.prototype.processTileData = function(tiledata) {
  * @memberof Render
  * @param {Array} deleted - Array of deleted game entity GUIDs.
  */
-window.Render.prototype.processDeletedGameEntityGuids = function(deleted) {
-  for(var i in deleted) {
+window.Render.prototype.processDeletedGameEntityGuids = function (deleted) {
+  for (var i in deleted) {
     var guid = deleted[i];
 
-    if ( !(guid in this.deletedGuid) ) {
-      this.deletedGuid[guid] = true;  // flag this guid as having being processed
+    if (!(guid in this.deletedGuid)) {
+      this.deletedGuid[guid] = true; // flag this guid as having being processed
 
-      if (guid == selectedPortal) {
+      if (guid === window.selectedPortal) {
         // the rare case of the selected portal being deleted. clear the details tab and deselect it
-        renderPortalDetails(null);
+        window.renderPortalDetails(null);
       }
 
       this.deleteEntity(guid);
-
     }
   }
-
-}
+};
 
 /**
  * Processes game entities (fields, links, portals) and creates them on the map.
@@ -140,37 +139,37 @@ window.Render.prototype.processDeletedGameEntityGuids = function(deleted) {
  * @function
  * @memberof Render
  * @param {Array} entities - Array of game entities.
- * @param {Object} details - Details for the {@link window.decodeArray.portal} function.
+ * @param {string} details - Details for the {@link window.decodeArray.portal} function.
  */
-window.Render.prototype.processGameEntities = function(entities, details) { // details expected in decodeArray.portal
+window.Render.prototype.processGameEntities = function (entities, details) {
+  // details expected in decodeArray.portal
 
   // we loop through the entities three times - for fields, links and portals separately
   // this is a reasonably efficient work-around for leafletjs limitations on svg render order
 
-
-  for (var i in entities) {
-    var ent = entities[i];
-    if (ent[2][0] == 'r' && !(ent[0] in this.deletedGuid)) {
+  for (const i in entities) {
+    const ent = entities[i];
+    if (ent[2][0] === 'r' && !(ent[0] in this.deletedGuid)) {
       this.createFieldEntity(ent);
     }
   }
 
-  for (var i in entities) {
-    var ent = entities[i];
+  for (const i in entities) {
+    const ent = entities[i];
 
-    if (ent[2][0] == 'e' && !(ent[0] in this.deletedGuid)) {
+    if (ent[2][0] === 'e' && !(ent[0] in this.deletedGuid)) {
       this.createLinkEntity(ent);
     }
   }
 
-  for (var i in entities) {
-    var ent = entities[i];
+  for (const i in entities) {
+    const ent = entities[i];
 
-    if (ent[2][0] == 'p' && !(ent[0] in this.deletedGuid)) {
+    if (ent[2][0] === 'p' && !(ent[0] in this.deletedGuid)) {
       this.createPortalEntity(ent, details);
     }
   }
-}
+};
 
 /**
  * Ends a render pass. This includes cleanup and processing of any remaining data.
@@ -179,41 +178,38 @@ window.Render.prototype.processGameEntities = function(entities, details) { // d
  * @function
  * @memberof Render
  */
-window.Render.prototype.endRenderPass = function() {
-  var countp=0,countl=0,countf=0;
+window.Render.prototype.endRenderPass = function () {
+  var countp = 0,
+    countl = 0,
+    countf = 0;
 
   // check to see if there are any entities we haven't seen. if so, delete them
-  for (var guid in window.portals) {
+  for (const guid in window.portals) {
     // special case for selected portal - it's kept even if not seen
     // artifact (e.g. jarvis shard) portals are also kept - but they're always 'seen'
-    if (!(guid in this.seenPortalsGuid) && guid !== selectedPortal) {
+    if (!(guid in this.seenPortalsGuid) && guid !== window.selectedPortal) {
       this.deletePortalEntity(guid);
       countp++;
     }
   }
-  for (var guid in window.links) {
+  for (const guid in window.links) {
     if (!(guid in this.seenLinksGuid)) {
       this.deleteLinkEntity(guid);
       countl++;
     }
   }
-  for (var guid in window.fields) {
+  for (const guid in window.fields) {
     if (!(guid in this.seenFieldsGuid)) {
       this.deleteFieldEntity(guid);
       countf++;
     }
   }
 
-  log.log('Render: end cleanup: removed '+countp+' portals, '+countl+' links, '+countf+' fields');
+  log.log('Render: end cleanup: removed ' + countp + ' portals, ' + countl + ' links, ' + countf + ' fields');
 
   // reorder portals to be after links/fields
   this.bringPortalsToFront();
-
-  // re-select the selected portal, to re-render the side-bar. ensures that any data calculated from the map data is up to date
-  if (selectedPortal) {
-    renderPortalDetails (selectedPortal);
-  }
-}
+};
 
 /**
  * Brings portal markers to the front of the map view, ensuring they are rendered above links and fields.
@@ -221,18 +217,18 @@ window.Render.prototype.endRenderPass = function() {
  * @function
  * @memberof Render
  */
-window.Render.prototype.bringPortalsToFront = function() {
+window.Render.prototype.bringPortalsToFront = function () {
   for (var guid in window.portals) {
     window.portals[guid].bringToFront();
   }
 
   // artifact portals are always brought to the front, above all others
-  $.each(artifact.getInterestingPortals(), function(i,guid) {
-    if (portals[guid] && portals[guid]._map) {
-      portals[guid].bringToFront();
+  $.each(window.artifact.getInterestingPortals(), function (i, guid) {
+    if (window.portals[guid] && window.portals[guid]._map) {
+      window.portals[guid].bringToFront();
     }
   });
-}
+};
 
 /**
  * Deletes an entity (portal, link, or field) from the map based on its GUID.
@@ -241,11 +237,11 @@ window.Render.prototype.bringPortalsToFront = function() {
  * @memberof Render
  * @param {string} guid - The globally unique identifier of the entity to delete.
  */
-window.Render.prototype.deleteEntity = function(guid) {
+window.Render.prototype.deleteEntity = function (guid) {
   this.deletePortalEntity(guid);
   this.deleteLinkEntity(guid);
   this.deleteFieldEntity(guid);
-}
+};
 
 /**
  * Deletes a portal entity from the map based on its GUID.
@@ -254,15 +250,15 @@ window.Render.prototype.deleteEntity = function(guid) {
  * @memberof Render
  * @param {string} guid - The globally unique identifier of the portal to delete.
  */
-window.Render.prototype.deletePortalEntity = function(guid) {
+window.Render.prototype.deletePortalEntity = function (guid) {
   if (guid in window.portals) {
     var p = window.portals[guid];
     window.ornaments.removePortal(p);
     this.removePortalFromMapLayer(p);
     delete window.portals[guid];
-    window.runHooks('portalRemoved', {portal: p, data: p.options.data });
+    window.runHooks('portalRemoved', { portal: p, data: p.options.data });
   }
-}
+};
 
 /**
  * Deletes a link entity from the map based on its GUID.
@@ -271,14 +267,14 @@ window.Render.prototype.deletePortalEntity = function(guid) {
  * @memberof Render
  * @param {string} guid - The globally unique identifier of the link to delete.
  */
-window.Render.prototype.deleteLinkEntity = function(guid) {
+window.Render.prototype.deleteLinkEntity = function (guid) {
   if (guid in window.links) {
     var l = window.links[guid];
     l.remove();
     delete window.links[guid];
-    window.runHooks('linkRemoved', {link: l, data: l.options.data });
+    window.runHooks('linkRemoved', { link: l, data: l.options.data });
   }
-}
+};
 
 /**
  * Deletes a field entity from the map based on its GUID.
@@ -287,14 +283,14 @@ window.Render.prototype.deleteLinkEntity = function(guid) {
  * @memberof Render
  * @param {string} guid - The globally unique identifier of the field to delete.
  */
-window.Render.prototype.deleteFieldEntity = function(guid) {
+window.Render.prototype.deleteFieldEntity = function (guid) {
   if (guid in window.fields) {
     var f = window.fields[guid];
     f.remove();
     delete window.fields[guid];
-    window.runHooks('fieldRemoved', {field: f, data: f.options.data });
+    window.runHooks('fieldRemoved', { field: f, data: f.options.data });
   }
-}
+};
 
 /**
  * Creates a placeholder portal entity. This is used when the portal is not fully loaded,
@@ -306,6 +302,7 @@ window.Render.prototype.deleteFieldEntity = function(guid) {
  * @param {number} latE6 - The latitude of the portal in E6 format.
  * @param {number} lngE6 - The longitude of the portal in E6 format.
  * @param {string} team - The team faction of the portal.
+ * @param {number} [timestamp=0] - Timestamp of the portal data. Defaults to 0 to allow newer data sources to override
  * @param {number} [timestamp] - The timestamp of the portal data.
  */
 window.Render.prototype.createPlaceholderPortalEntity = function (guid, latE6, lngE6, team, timestamp) {
@@ -320,7 +317,7 @@ window.Render.prototype.createPlaceholderPortalEntity = function (guid, latE6, l
 
   var ent = [
     guid, // ent[0] = guid
-    -1, // ent[1] = timestamp - zero will mean any other source of portal data will have a higher timestamp
+    timestamp, // ent[1] = timestamp
     // ent[2] = an array with the entity data
     [
       'p', // 0 - a portal
@@ -330,24 +327,8 @@ window.Render.prototype.createPlaceholderPortalEntity = function (guid, latE6, l
     ],
   ];
 
-  // placeholder portals don't have a useful timestamp value - so the standard code that checks for updated
-  // portal details doesn't apply
-  // so, check that the basic details are valid and delete the existing portal if out of date
-  var portalMoved = false;
-  if (guid in window.portals) {
-    var p = window.portals[guid];
-    portalMoved = latE6 !== p.options.data.latE6 || lngE6 !== p.options.data.lngE6;
-    if (team !== p.options.data.team && p.options.timestamp < timestamp) {
-      // team - delete existing portal
-      this.deletePortalEntity(guid);
-    }
-  }
-
-  if (!portalMoved) {
-    this.createPortalEntity(ent, 'core'); // placeholder
-  }
-
-}
+  this.createPortalEntity(ent, 'core'); // placeholder
+};
 
 /**
  * Creates a portal entity from the provided game entity data.
@@ -358,110 +339,106 @@ window.Render.prototype.createPlaceholderPortalEntity = function (guid, latE6, l
  * @param {Array} ent - An array representing the game entity.
  * @param {string} details - Detail level expected in {@link window.decodeArray.portal} (e.g., 'core', 'summary').
  */
-window.Render.prototype.createPortalEntity = function(ent, details) { // details expected in decodeArray.portal
-  this.seenPortalsGuid[ent[0]] = true;  // flag we've seen it
+window.Render.prototype.createPortalEntity = function (ent, details) {
+  this.seenPortalsGuid[ent[0]] = true; // flag we've seen it
 
   var previousData = undefined;
 
-  var data = decodeArray.portal(ent[2], details);
+  var data = window.decodeArray.portal(ent[2], details);
+  var guid = ent[0];
+
+  // add missing fields
+  data.guid = guid;
+  if (!data.timestamp) {
+    data.timestamp = ent[1];
+  }
+
+  // LEGACY - TO BE REMOVED AT SOME POINT! use .guid, .timestamp and .data instead
+  data.ent = ent;
 
   // check if entity already exists
-  if (ent[0] in window.portals) {
-    // yes. now check to see if the entity data we have is newer than that in place
-    var p = window.portals[ent[0]];
+  const oldPortal = guid in window.portals;
 
-    if (!data.history || p.options.data.history === data.history)
-      if (p.options.timestamp >= ent[1]) {
-        return; // this data is identical or older - abort processing
-      }
+  if (oldPortal) {
+    // yes. now check to see if the entity data we have is newer than that in place
+    var p = window.portals[guid];
+
+    if (!p.willUpdate(data)) {
+      // this data doesn't bring new detail - abort processing
+      // re-add the portal to the relevant layer (does nothing if already in the correct layer)
+      // useful for portals outside the view
+      this.addPortalToMapLayer(p);
+      return p;
+    }
 
     // the data we have is newer. many data changes require re-rendering of the portal
     // (e.g. level changed, so size is different, or stats changed so highlighter is different)
-    // so to keep things simple we'll always re-create the entity in this case
 
     // remember the old details, for the callback
-
-    previousData = p.options.data;
-
-    // preserve history
-    if (!data.history) {
-      data.history = previousData.history;
-    }
-
-    this.deletePortalEntity(ent[0]);
+    previousData = $.extend(true, {}, p.getDetails());
   }
 
-  var portalLevel = parseInt(data.level)||0;
-  var team = teamStringToId(data.team);
-  // the data returns unclaimed portals as level 1 - but IITC wants them treated as level 0
-  if (team == TEAM_NONE) portalLevel = 0;
+  var latlng = L.latLng(data.latE6 / 1e6, data.lngE6 / 1e6);
 
-  var latlng = L.latLng(data.latE6/1E6, data.lngE6/1E6);
-
-  var dataOptions = {
-    level: portalLevel,
-    team: team,
-    ent: ent,  // LEGACY - TO BE REMOVED AT SOME POINT! use .guid, .timestamp and .data instead
-    guid: ent[0],
-    timestamp: ent[1],
-    data: data
-  };
-
-  window.pushPortalGuidPositionCache(ent[0], data.latE6, data.lngE6);
-
-  var marker = createMarker(latlng, dataOptions);
-
-  function handler_portal_click (e) {
-    window.renderPortalDetails(e.target.options.guid);
-  }
-  function handler_portal_dblclick (e) {
-    window.renderPortalDetails(e.target.options.guid);
-    window.map.setView(e.target.getLatLng(), DEFAULT_ZOOM);
-  }
-  function handler_portal_contextmenu (e) {
-    window.renderPortalDetails(e.target.options.guid);
-    if (window.isSmartphone()) {
-      window.show('info');
-    } else if (!$('#scrollwrapper').is(':visible')) {
-      $('#sidebartoggle').click();
-    }
-  }
-
-  marker.on('click', handler_portal_click);
-  marker.on('dblclick', handler_portal_dblclick);
-  marker.on('contextmenu', handler_portal_contextmenu);
-
-  window.runHooks('portalAdded', {portal: marker, previousData: previousData});
-
-  window.portals[ent[0]] = marker;
+  window.pushPortalGuidPositionCache(data.guid, data.latE6, data.lngE6);
 
   // check for URL links to portal, and select it if this is the one
-  if (urlPortalLL && urlPortalLL[0] == marker.getLatLng().lat && urlPortalLL[1] == marker.getLatLng().lng) {
+  if (window.urlPortalLL && window.urlPortalLL[0] === latlng.lat && window.urlPortalLL[1] === latlng.lng) {
     // URL-passed portal found via pll parameter - set the guid-based parameter
-    log.log('urlPortalLL '+urlPortalLL[0]+','+urlPortalLL[1]+' matches portal GUID '+ent[0]);
+    log.log('urlPortalLL ' + window.urlPortalLL[0] + ',' + window.urlPortalLL[1] + ' matches portal GUID ' + data.guid);
 
-    urlPortal = ent[0];
-    urlPortalLL = undefined;  // clear the URL parameter so it's not matched again
+    window.urlPortal = data.guid;
+    window.urlPortalLL = undefined; // clear the URL parameter so it's not matched again
   }
-  if (urlPortal == ent[0]) {
+  if (window.urlPortal === data.guid) {
     // URL-passed portal found via guid parameter - set it as the selected portal
-    log.log('urlPortal GUID '+urlPortal+' found - selecting...');
-    selectedPortal = ent[0];
-    urlPortal = undefined;  // clear the URL parameter so it's not matched again
+    log.log('urlPortal GUID ' + window.urlPortal + ' found - selecting...');
+    window.selectedPortal = data.guid;
+    window.urlPortal = undefined; // clear the URL parameter so it's not matched again
   }
 
-  // (re-)select the portal, to refresh the sidebar on any changes
-  if (ent[0] == selectedPortal) {
-    log.log('portal guid '+ent[0]+' is the selected portal - re-rendering portal details');
-    renderPortalDetails (selectedPortal);
+  let marker = undefined;
+  if (oldPortal) {
+    // update marker style/highlight and layer
+    marker = window.portals[data.guid];
+    marker.updateDetails(data);
+
+    if (window.portalDetail.isFresh(guid)) {
+      var oldDetails = window.portalDetail.get(guid);
+      if (data.timestamp > oldDetails.timestamp) {
+        // data is more recent than the cached details so we remove them from the cache
+        window.portalDetail.remove(guid);
+      }
+    }
+
+    window.runHooks('portalAdded', { portal: marker, previousData: previousData });
+  } else {
+    marker = window.createMarker(latlng, data);
+
+    // in case of incomplete data while having fresh details in cache, update the portal with those details
+    if (window.portalDetail.isFresh(guid)) {
+      var oldDetails = window.portalDetail.get(guid);
+      if (data.timestamp > oldDetails.timestamp) {
+        // data is more recent than the cached details so we remove them from the cache
+        window.portalDetail.remove(guid);
+      } else if (marker.willUpdate(oldDetails)) {
+        marker.updateDetails(oldDetails);
+      }
+    }
+
+    window.runHooks('portalAdded', { portal: marker });
+
+    window.portals[data.guid] = marker;
   }
+
 
   window.ornaments.addPortal(marker);
 
-  //TODO? postpone adding to the map layer
+  // TODO? postpone adding to the map layer
   this.addPortalToMapLayer(marker);
 
-}
+  return marker;
+};
 
 /**
  * Creates a field entity from the provided game entity data.
@@ -470,24 +447,26 @@ window.Render.prototype.createPortalEntity = function(ent, details) { // details
  * @memberof Render
  * @param {Array} ent - An array representing the game entity.
  */
-window.Render.prototype.createFieldEntity = function(ent) {
-  this.seenFieldsGuid[ent[0]] = true;  // flag we've seen it
+window.Render.prototype.createFieldEntity = function (ent) {
+  this.seenFieldsGuid[ent[0]] = true; // flag we've seen it
 
   var data = {
-//    type: ent[2][0],
+    // type: ent[2][0],
     timestamp: ent[1],
     team: ent[2][1],
-    points: ent[2][2].map(function(arr) { return {guid: arr[0], latE6: arr[1], lngE6: arr[2] }; })
+    points: ent[2][2].map(function (arr) {
+      return { guid: arr[0], latE6: arr[1], lngE6: arr[2] };
+    }),
   };
 
-  //create placeholder portals for field corners. we already do links, but there are the odd case where this is useful
-  for (var i=0; i<3; i++) {
-    var p=data.points[i];
-    this.createPlaceholderPortalEntity(p.guid, p.latE6, p.lngE6, data.team, data.timestamp);
+  // create placeholder portals for field corners. we already do links, but there are the odd case where this is useful
+  for (var i = 0; i < 3; i++) {
+    var p = data.points[i];
+    this.createPlaceholderPortalEntity(p.guid, p.latE6, p.lngE6, data.team, 0);
   }
 
   // check if entity already exists
-  if(ent[0] in window.fields) {
+  if (ent[0] in window.fields) {
     // yes. in theory, we should never get updated data for an existing field. they're created, and they're destroyed - never changed
     // but theory and practice may not be the same thing...
     var f = window.fields[ent[0]];
@@ -500,33 +479,33 @@ window.Render.prototype.createFieldEntity = function(ent) {
     this.deleteFieldEntity(ent[0]); // option 2, for now
   }
 
-  var team = teamStringToId(ent[2][1]);
+  var team = window.teamStringToId(ent[2][1]);
   var latlngs = [
-    L.latLng(data.points[0].latE6/1E6, data.points[0].lngE6/1E6),
-    L.latLng(data.points[1].latE6/1E6, data.points[1].lngE6/1E6),
-    L.latLng(data.points[2].latE6/1E6, data.points[2].lngE6/1E6)
+    L.latLng(data.points[0].latE6 / 1e6, data.points[0].lngE6 / 1e6),
+    L.latLng(data.points[1].latE6 / 1e6, data.points[1].lngE6 / 1e6),
+    L.latLng(data.points[2].latE6 / 1e6, data.points[2].lngE6 / 1e6),
   ];
 
   var poly = L.geodesicPolygon(latlngs, {
-    fillColor: COLORS[team],
+    fillColor: window.COLORS[team],
     fillOpacity: 0.25,
     stroke: false,
     interactive: false,
 
     team: team,
-    ent: ent,  // LEGACY - TO BE REMOVED AT SOME POINT! use .guid, .timestamp and .data instead
+    ent: ent, // LEGACY - TO BE REMOVED AT SOME POINT! use .guid, .timestamp and .data instead
     guid: ent[0],
     timestamp: data.timestamp,
     data: data,
   });
 
-  runHooks('fieldAdded',{field: poly});
+  window.runHooks('fieldAdded', { field: poly });
 
   window.fields[ent[0]] = poly;
 
   // TODO? postpone adding to the layer??
   if (!IITC.filters.filterField(poly)) poly.addTo(window.map);
-}
+};
 
 /**
  * Creates a link entity from the provided game entity data.
@@ -539,22 +518,22 @@ window.Render.prototype.createLinkEntity = function (ent) {
   // Niantic have been faking link entities, based on data from fields
   // these faked links are sent along with the real portal links, causing duplicates
   // the faked ones all have longer GUIDs, based on the field GUID (with _ab, _ac, _bc appended)
-  var fakedLink = new RegExp("^[0-9a-f]{32}\.b_[ab][bc]$"); //field GUIDs always end with ".b" - faked links append the edge identifier
+  var fakedLink = new RegExp('^[0-9a-f]{32}.b_[ab][bc]$'); // field GUIDs always end with ".b" - faked links append the edge identifier
   if (fakedLink.test(ent[0])) return;
 
+  this.seenLinksGuid[ent[0]] = true; // flag we've seen it
 
-  this.seenLinksGuid[ent[0]] = true;  // flag we've seen it
-
-  var data = { // TODO add other properties and check correction direction
-//    type:   ent[2][0],
+  var data = {
+    // TODO add other properties and check correction direction
+    //    type:   ent[2][0],
     timestamp: ent[1],
-    team:   ent[2][1],
-    oGuid:  ent[2][2],
+    team: ent[2][1],
+    oGuid: ent[2][2],
     oLatE6: ent[2][3],
     oLngE6: ent[2][4],
-    dGuid:  ent[2][5],
+    dGuid: ent[2][5],
     dLatE6: ent[2][6],
-    dLngE6: ent[2][7]
+    dLngE6: ent[2][7],
   };
 
   // create placeholder entities for link start and end points (before checking if the link itself already exists
@@ -572,30 +551,27 @@ window.Render.prototype.createLinkEntity = function (ent) {
     this.deleteLinkEntity(ent[0]); // option 2 - for now
   }
 
-  var team = teamStringToId(ent[2][1]);
-  var latlngs = [
-    L.latLng(data.oLatE6/1E6, data.oLngE6/1E6),
-    L.latLng(data.dLatE6/1E6, data.dLngE6/1E6)
-  ];
+  var team = window.teamStringToId(ent[2][1]);
+  var latlngs = [L.latLng(data.oLatE6 / 1e6, data.oLngE6 / 1e6), L.latLng(data.dLatE6 / 1e6, data.dLngE6 / 1e6)];
   var poly = L.geodesicPolyline(latlngs, {
-    color: COLORS[team],
+    color: window.COLORS[team],
     opacity: 1,
     weight: 2,
     interactive: false,
 
     team: team,
-    ent: ent,  // LEGACY - TO BE REMOVED AT SOME POINT! use .guid, .timestamp and .data instead
+    ent: ent, // LEGACY - TO BE REMOVED AT SOME POINT! use .guid, .timestamp and .data instead
     guid: ent[0],
     timestamp: ent[1],
-    data: data
+    data: data,
   });
 
-  runHooks('linkAdded', {link: poly});
+  window.runHooks('linkAdded', { link: poly });
 
   window.links[ent[0]] = poly;
 
   if (!IITC.filters.filterLink(poly)) poly.addTo(window.map);
-}
+};
 
 /**
  * Rescales portal markers based on the current map zoom level.
@@ -603,17 +579,17 @@ window.Render.prototype.createLinkEntity = function (ent) {
  * @function
  * @memberof Render
  */
-window.Render.prototype.rescalePortalMarkers = function() {
-  if (this.portalMarkerScale === undefined || this.portalMarkerScale != portalMarkerScale()) {
-    this.portalMarkerScale = portalMarkerScale();
+window.Render.prototype.rescalePortalMarkers = function () {
+  if (this.portalMarkerScale === undefined || this.portalMarkerScale !== window.portalMarkerScale()) {
+    this.portalMarkerScale = window.portalMarkerScale();
 
-    log.log('Render: map zoom '+map.getZoom()+' changes portal scale to '+portalMarkerScale()+' - redrawing all portals');
+    log.log('Render: map zoom ' + window.map.getZoom() + ' changes portal scale to ' + window.portalMarkerScale() + ' - redrawing all portals');
 
-    //NOTE: we're not calling this because it resets highlights - we're calling it as it
+    // NOTE: we're not calling this because it resets highlights - we're calling it as it
     // resets the style (inc size) of all portal markers, applying the new scale
-    resetHighlightedPortals();
+    window.resetHighlightedPortals();
   }
-}
+};
 
 /**
  * Adds a portal to the visible map layer.
@@ -622,9 +598,9 @@ window.Render.prototype.rescalePortalMarkers = function() {
  * @memberof Render
  * @param {Object} portal - The portal object to add to the map layer.
  */
-window.Render.prototype.addPortalToMapLayer = function(portal) {
+window.Render.prototype.addPortalToMapLayer = function (portal) {
   if (!IITC.filters.filterPortal(portal)) portal.addTo(window.map);
-}
+};
 
 /**
  * Removes a portal from the visible map layer.
@@ -633,9 +609,7 @@ window.Render.prototype.addPortalToMapLayer = function(portal) {
  * @memberof Render
  * @param {Object} portal - The portal object to remove from the map layer.
  */
-window.Render.prototype.removePortalFromMapLayer = function(portal) {
-  //remove it from the portalsLevels layer
+window.Render.prototype.removePortalFromMapLayer = function (portal) {
+  // remove it from the portalsLevels layer
   portal.remove();
-}
-
-/* global IITC */
+};

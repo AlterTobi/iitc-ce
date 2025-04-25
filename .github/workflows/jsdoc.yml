@@ -1,4 +1,4 @@
-name: GitHub pages
+name: GitHub pages JSDoc
 
 on:
   push:
@@ -13,12 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Build
-        uses: andstor/jsdoc-action@v1
+        uses: zhennann/jsdoc-action@v1
         with:
-          source_dir: ./core
           output_dir: ./out
           config_file: jsdoc-conf.json
           template: tui-jsdoc-template
@@ -26,7 +25,7 @@ jobs:
 
       - name: Deploy
         if: github.event_name != 'pull_request'
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
           publish_dir: ./out

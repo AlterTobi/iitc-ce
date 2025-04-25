@@ -1,4 +1,4 @@
-/* global L -- eslint */
+/* global IITC, L -- eslint */
 
 /**
  * @file This file contains functions that are not use by IITC itself
@@ -161,4 +161,29 @@ window.findPortalLatLng = function (guid) {
 
   // no luck finding portal lat/lng
   return undefined;
+};
+
+// to be ovewritten in app.js
+/**
+ * Finds the latitude and longitude for a portal using all available data sources.
+ * This includes the list of portals, cached portal details, and information from links and fields.
+ *
+ * @deprecated
+ * @function androidCopy
+ */
+window.androidCopy = function () {
+  return true; // i.e. execute other actions
+};
+
+/**
+ * Given the entity detail data, returns the team the entity belongs to.
+ * Uses TEAM_* enum values.
+ *
+ * @deprecated
+ * @function getTeam
+ * @param {Object} details - The details hash of an entity.
+ * @returns {number} The team ID the entity belongs to.
+ */
+window.getTeam = function (details) {
+  return IITC.utils.getTeamId(details.team);
 };
