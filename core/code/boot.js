@@ -1,4 +1,4 @@
-/* global L, log -- eslint */
+/* global IITC, L, log -- eslint */
 
 /**
  * @file These functions set up specific areas after the boot function created a basic framework.
@@ -250,6 +250,16 @@ function prepPluginsToLoad() {
 }
 
 /**
+ * update Z-Index of plugins buttons in leaflet container
+ */
+function updateControlBarZIndex() {
+  $('.leaflet-control-container .leaflet-top.leaflet-left').children().each((index, element) => {
+    element.style.zIndex = (10100 - index).toString();
+  });
+}
+
+
+/**
  * The main boot function that initializes IITC. It is responsible for setting up the map,
  * loading plugins, and initializing various components of IITC.
  * @function boot
@@ -282,6 +292,7 @@ function boot() {
   window.portalDetail.setup();
   window.setupRedeem();
   window.setupSidebar();
+  IITC.statusbar.init();
 
   loadPlugins();
 
@@ -293,6 +304,8 @@ function boot() {
 
   window.iitcLoaded = true;
   window.runHooks('iitcLoaded');
+
+  updateControlBarZIndex();
 }
 
 try {

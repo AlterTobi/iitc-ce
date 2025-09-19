@@ -1,13 +1,17 @@
 // @author         breunigs
 // @name           Draw tools
 // @category       Draw
-// @version        0.11.0
+// @version        0.12.0
 // @description    Allow drawing things onto the current map so you may plan your next move. Supports Multi-Project-Extension.
 
 /* global IITC, L -- eslint */
 /* exported setup, changelog --eslint */
 
 var changelog = [
+  {
+    version: '0.11.0',
+    changes: ['Add confirmation dialog', 'Fix portal snap positioning bug'],
+  },
   {
     version: '0.11.0',
     changes: ['Custom paste dialog', 'Import multiple files'],
@@ -659,7 +663,7 @@ window.plugin.drawTools.snapToPortals = function () {
     if (minGuid) {
       var pll = window.portals[minGuid].getLatLng();
       if (pll.lat !== latlng.lat || pll.lng !== latlng.lng) {
-        return L.latLng(pll);
+        return new L.LatLng(pll.lat, pll.lng);
       }
     }
   };
@@ -1007,6 +1011,9 @@ function loadExternals() {
 
     // eslint-disable-next-line
     '@include_raw:external/leaflet.draw-geodesic.js@';
+
+    // eslint-disable-next-line
+    '@include_raw:external/leaflet.draw-confirm.js@';
 
     // support Leaflet >= 1
     // https://github.com/Leaflet/Leaflet.draw/pull/911
