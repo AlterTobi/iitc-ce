@@ -152,6 +152,7 @@ public class IITC_PluginManager {
 
                 PluginInfo info = getPluginMetadata(fileName, PluginType.DEV, file, storageManager, null);
                 if (info != null && !isExcludedCategory(info.getCategory())) {
+                    info.setDocumentFileUri(file.getUri().toString());
                     Plugin plugin = new Plugin(fileName, PluginType.DEV, info, file);
                     plugins.put(fileName, plugin);
                 }
@@ -176,6 +177,7 @@ public class IITC_PluginManager {
 
             PluginInfo info = getPluginMetadata(fileName, PluginType.USER, file, storageManager, null);
             if (info != null && !isExcludedCategory(info.getCategory())) {
+                info.setDocumentFileUri(file.getUri().toString());
                 Plugin plugin = new Plugin(fileName, PluginType.USER, info, file);
                 plugins.put(fileName, plugin);
             }
